@@ -7,3 +7,5 @@ Grayscale image shape=[5,5]
 color image shape=[5,5,3]
 Lesson2:
 An image isn't an abstract object to a computer. It is structured numerical data, and by changing those numbers we can directly change the image.
+Lesson 3:RGB vs BGR & Understanding Image Channels
+
