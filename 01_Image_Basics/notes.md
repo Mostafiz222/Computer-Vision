@@ -12,3 +12,9 @@ OpenCv uses by default BGR ,we can convert it to RGB
 Lesson 4:
 Research Connection:
 Bounding boxes in object detection (YOLO, Faster R-CNN, DETR) are fundamentally just rectangles drawn on regions of interest.what's happening under the hood is that the model predicts the coordinates of a rectangle, and then code very similar to cv2.rectangle() draws it on the image.
+lesson 5:
+Interpolation"This is one of the most important concepts today.
+When resizing, new pixels must be created or removed.
+How should the computer estimate them?
+That's called interpolation.
+OpenCV provides several methods
