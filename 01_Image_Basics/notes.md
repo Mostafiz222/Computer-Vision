@@ -24,3 +24,24 @@ lesson 8:
 ->Edge detectors calculate changes in pixel intensity. A grayscale image has one intensity value per pixel, making the computation simpler and faster than processing three separate RGB channels.
 ->Laplacian directly computes the second derivative of the image. Second derivatives respond strongly to small intensity fluctuations, including random noise. Canny, on the other hand, first applies Gaussian smoothing to reduce noise before detecting edges, making it much more robust.
 lesson 9:Thresholding converts an image into binary regions based on absolute pixel intensity values, whereas edge detection identifies boundaries by locating sharp changes or gradients in local pixel intensity.
+Lesson 10:
+What are Morphological Operations?
+Morphology means:
+Operations that modify the shape of objects in a binary image.
+Unlike brightness or filtering, morphology focuses on the geometry of foreground objects.
+Question 1:
+Suppose you have tiny white noise scattered across a binary image.
+Which operation would you use?
+Opening
+Closing
+Why?
+->Opening
+->Erosion step: Erases small isolated white pixels (noise) because the structuring element does not fit entirely within these tiny spots.
+->Dilation step: Restores the size and shape of the larger foreground objects that survived the erosion.
+Question 2:Suppose a white object contains many tiny black holes.
+Which operation would you choose?
+Why?
+->Closing.
+->Dilation step: Expands the white foreground regions, successfully bridging and filling in the tiny black holes.
+->Erosion step: Shrinks the outer boundaries of the foreground objects back to their original size and shape, without reopening the filled holes.
+->Increasing the kernel size (structuring element) from 3×3 to 9×9 during erosion causes a much stronger and more aggressive shrinking effect on white (foreground) objects.
