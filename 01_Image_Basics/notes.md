@@ -18,3 +18,5 @@ When resizing, new pixels must be created or removed.
 How should the computer estimate them?
 That's called interpolation.
 OpenCV provides several methods
+lesson 7:
+Convolution is sliding a small kernel over an image and combining the kernel values with the surrounding pixels to produce a new image. Depending on the kernel, it can blur, sharpen, detect edges, or extract features.(like we studied in academic)
