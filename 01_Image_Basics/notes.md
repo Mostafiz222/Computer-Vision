@@ -72,3 +72,26 @@ Suppose your image contains 1,000 tiny dust particles and one large coin.
 How could contour area help you detect only the coin?
 Explain your reasoning.
 ->By filtering contours with an area threshold (area > threshold), you can keep the single contour whose area matches the coin's size while instantly discarding all 1,000 tiny particles with near-zero areas.
+lesson 12:
+A feature is a point in an image that is:
+Distinctive
+Repeatable
+Easy to find again
+Question 1
+Why are corners generally more useful than edges for tracking objects?
+->Corners are more useful than edges because they provide 2D localization, fixing position in both X and Y directions
+Question 2
+Why doesn't a flat region make a good feature?
+->because all neighboring pixels have nearly identical brightness, offering zero contrast or unique geometric structure to track across frames.
+Question 3
+ORB uses FAST internally.
+Why do you think ORB became much more popular than FAST alone?
+->ORB became much more popular because FAST alone lacks scale and rotation invariance, whereas ORB makes FAST keypoints invariant to both while adding a fast binary descriptor (BRIEF).
+4.Suppose you take a photo of the same building from two different angles.
+How could ORB help determine that both images contain the same building, even though the viewpoints differ?
+->ORB pairs scale- and rotation-invariant keypoint detection with a fast binary descriptor, allowing a computer to match distinct architectural features across different viewpoints
+**
+This lesson introduces two concepts that remain fundamental in modern CV:
+Keypoints —> locations in an image that are informative.
+Descriptors —> numerical representations of those locations.
+Deep learning models don't use ORB descriptors directly, but they learn feature representations for image patches that serve a similar purpose. When we reach CNN feature maps and Vision Transformers, you'll see that they're solving the same high-level problem—representing visual information in a way that can be compared and recognized—using learned features instead of handcrafted ones.
