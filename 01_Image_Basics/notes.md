@@ -45,3 +45,30 @@ Why?
 ->Dilation step: Expands the white foreground regions, successfully bridging and filling in the tiny black holes.
 ->Erosion step: Shrinks the outer boundaries of the foreground objects back to their original size and shape, without reopening the filled holes.
 ->Increasing the kernel size (structuring element) from 3×3 to 9×9 during erosion causes a much stronger and more aggressive shrinking effect on white (foreground) objects.
+
+Morphological operations are still widely used because they are simple, fast, and effective for cleaning binary masks.
+This is used in:
+Cleaning segmentation masks after inference.
+Post-processing outputs from U-Net or Mask R-CNN.
+Removing small false positives in medical image segmentation.
+Preparing images before contour detection or OCR.
+Even in modern pipelines, a few lines of morphology can noticeably improve the quality of a segmentation mask.
+lesson 11:
+A contour is simply:
+A continuous curve joining all the boundary points of an object.
+Question 1
+Why do we usually perform thresholding before contour detection?
+->because contours are found by tracking clean boundaries between bright foreground objects and dark background regions.
+Question 2
+Why is CHAIN_APPROX_SIMPLE preferred over storing every boundary pixel?
+->compresses the boundary by storing only key vertices (endpoints) of straight segments, rather than storing every single pixel along the boundary
+Question 3
+What is the difference between:
+Bounding Rectangle
+Minimum Enclosing Circle
+->A bounding rectangle wraps an object in an axis-aligned box defined by (x, y, width, height), while a minimum enclosing circle wraps it in the smallest possible circle defined by (center, radius).
+Question 4:
+Suppose your image contains 1,000 tiny dust particles and one large coin.
+How could contour area help you detect only the coin?
+Explain your reasoning.
+->By filtering contours with an area threshold (area > threshold), you can keep the single contour whose area matches the coin's size while instantly discarding all 1,000 tiny particles with near-zero areas.
