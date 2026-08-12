@@ -95,3 +95,22 @@ This lesson introduces two concepts that remain fundamental in modern CV:
 Keypoints —> locations in an image that are informative.
 Descriptors —> numerical representations of those locations.
 Deep learning models don't use ORB descriptors directly, but they learn feature representations for image patches that serve a similar purpose. When we reach CNN feature maps and Vision Transformers, you'll see that they're solving the same high-level problem—representing visual information in a way that can be compared and recognized—using learned features instead of handcrafted ones.
+Lesson13:
+Question 1
+Why is Hamming distance used with ORB instead of Euclidean distance?
+->Hamming distance is used with ORB (Oriented FAST and Rotated BRIEF) because ORB produces binary descriptors, whereas Euclidean distance is designed for continuous floating-point vectors (like SIFT or SURF).
+Question 2
+Why do we sort matches by distance?
+->to prioritize the most confident feature correspondences and filter out weak or noisy matches before performing downstream tasks.
+Question 3
+What problem does Lowe's ratio test solve?
+->Lowe's ratio test solves the problem of false positives caused by ambiguous or non-distinctive features.
+Question 4 (Most Important)
+Suppose you take two photos of the same building:
+one during the day,
+one at sunset.
+Do you think ORB will still match them perfectly?
+If not, what factors could reduce the quality of the matches?
+Explain your reasoning.
+->No, ORB will not match them perfectly. While ORB is robust against moderate rotation and scale changes, dramatic changes in lighting between day and sunset significantly degrade its matching performance.
+->While ORB may still successfully match a subset of strong, high-contrast structural features (like sharp roof outlines or window frames), total valid matches will drop significantly, and the ratio of false positives will rise.
