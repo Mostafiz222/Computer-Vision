@@ -60,3 +60,22 @@ Challenge Questions
 ->(Index 0 = Red, Index 1 = Green, Index 2 = Blue). Indexing img[1] fixes the channel dimension to the Green channel while keeping all remaining spatial dimensions (Height, Width) intact, leaving a 2D matrix representing the Green intensity map.
 4.Why do we use torch.clamp() after increasing brightness?
 ->torch.clamp(img, min=0.0, max=1.0) hard-caps all values, ensuring pixels stay safely within valid numerical limits without affecting relative intensity relationships below 1.0.
+Lesson3:Autograd & Gradients
+The gradient tells us:
+If x changes slightly, how much does y change?(dy/dx)(differentiation)by forward pass
+it changes weight to minimize loss.let's say,x^2. differentiation of it is 2x. if x=6,it becomes 12.that's gradient.
+Pytorch calculate it automatically.that's called autograd.
+1. Why requires_grad=True Matters?
+By default, PyTorch tensors do not track operations to save memory and processing time. Setting requires_grad=True tells PyTorch to build a computational graph in the background for that tensor.
+2. What loss.backward() Actually Does?
+->When we call loss.backward(), PyTorch traverses the computational graph in reverse from the loss tensor back to all input tensors that have requires_grad=True.
+3. Calculating x.grad for y = x^2 at x = 5Function:
+ y = x^2
+ Derivative: {dy}{dx} = 2x
+ Evaluation at x = 5
+ {dy}{dx}=2x = 2(5) = 10
+ So, x.grad will be 10.0
+ 4. What Gradients Ultimately Tell Us in a Neural Network
+Gradients tell us direction and magnitude for updating parameters to make better predictions:
+Gradients don't directly tell the model what the "correct" parameters are.
+They tell us how the loss changes when a parameter changes. The optimizer then uses that information to update the parameters.
