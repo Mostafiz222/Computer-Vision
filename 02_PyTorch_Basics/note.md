@@ -45,3 +45,18 @@ Stable Gradient Estimation: Updating model weights based on a single image leads
 64 × 3 × 224 × 224
 what does each dimension represent?
 ->This represents a standard 4D PyTorch image batch tensor following the NCHW convention:
+Lesson2:
+Challenge Questions
+
+1.What is the difference between img[0] and img[:,0,0]?
+->img[0] selects the first channel (the Red channel). It keeps all height and width dimensions, returning a 2D tensor of shape (224, 224).
+->img[:, 0, 0] selects a single pixel at row 0, column 0 across all 3 color channels. It returns a 1D tensor of shape (3,) containing [Red, Green, Blue] values for that top-left pixel.
+2.Why is broadcasting faster than writing nested for loops?
+->Broadcasting is drastically faster for two primary reasons:
+1.C / CUDA C++ Execution (Vectorization)
+2.Zero Memory Overhead
+3.If an image tensor has shape (3,224,224), what is the shape of img[1]? Why?
+->Shape: torch.Size([224, 224])
+->(Index 0 = Red, Index 1 = Green, Index 2 = Blue). Indexing img[1] fixes the channel dimension to the Green channel while keeping all remaining spatial dimensions (Height, Width) intact, leaving a 2D matrix representing the Green intensity map.
+4.Why do we use torch.clamp() after increasing brightness?
+->torch.clamp(img, min=0.0, max=1.0) hard-caps all values, ensuring pixels stay safely within valid numerical limits without affecting relative intensity relationships below 1.0.
