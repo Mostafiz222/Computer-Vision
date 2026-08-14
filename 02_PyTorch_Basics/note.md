@@ -113,3 +113,9 @@ No matter how deep you build a network with only linear layers, it can only lear
 ->Gradients are calculated, but the model weights never actually update. The model will fail to learn and its loss won't decrease.
 6. Why Subclass nn.Module?
 ->It unlocks built-in PyTorch features automatically: parameter tracking (model.parameters()), one-line GPU support (model.to('cuda')), saving/loading weights, and toggling training/evaluation modes.
+layer = nn.Linear(3, 2)
+3 input features
+2 output neurons(Hidden layer)
+How many parameters does this layer have?
+Formula:
+Parameters=(in_features * out_features)+out_features
