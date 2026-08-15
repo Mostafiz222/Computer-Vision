@@ -244,3 +244,67 @@ Cross-Entropy Loss measures not just whether a prediction is correct, but how co
 Model A is generally preferred for deployment, with two key qualifications:
 1.Better Confidence Separation
 2.The Calibration Caveat
+
+Lesson 5:
+A gradient tells us:
+Direction: Increase or decrease the parameter?
+Magnitude: By how much is the loss affected?
+For a weight w:
+Positive gradient → increasing w increases the loss, so decrease w.
+Negative gradient → increasing w decreases the loss, so increase w.
+Part 4 — Gradient Descent
+The basic update rule is:
+w(new)=w(old)−η(∂w/∂L)
+where:
+w = weight
+L = loss
+(∂L/∂w)= gradient
+η = learning rate
+The minus sign means we move opposite the gradient, because the gradient points toward increasing loss.
+The component responsible for updating  parameters is the optimizer.
+
+| Optimizer      | Characteristics                  | Typical Use                             |
+| -------------- | -------------------------------- | --------------------------------------- |
+| SGD            | Simple gradient descent          | Baseline, large-scale vision            |
+| SGD + Momentum | Adds inertia to updates          | CNNs (ResNet, VGG)                      |
+| Adam           | Adaptive learning rates          | General deep learning                   |
+| AdamW          | Adam with decoupled weight decay | Vision Transformers (ViT, CLIP, DINOv2) |
+
+Question 1: Primary Job of an Optimizer:
+The primary job of an optimizer is to update the model's weights and biases based on the gradients computed during backpropagation in order to minimize the loss function.
+Question 2: What the Learning Rate  ControlsThe learning rate.
+controls the step size taken in the direction of the negative gradient during each optimization step—determining how aggressively or cautiously the weights are updated.
+Question 3: Compute New Weight (Positive Gradient):
+
+w(old)=3.5,gradient =2.0,lr=0.05
+w(new)=w(old)-lr*gradient
+w(new)=3.5-2.0*0.05=3.4
+
+Question 4: Compute Updated Weight (Negative Gradient)
+w(old)=3.5,gradient =-2.0,lr=0.05
+w(new)=w(old)-lr*gradient
+w(new)=3.5+2.0*0.05=3.6
+
+Question 5: Why optimizer.step() Needs Gradients from loss.backward()optimizer.step()?
+->reads the stored gradient values (.grad attributes) attached to each model parameter to compute weight updates. If loss.backward() is not executed first, these .grad attributes will either be None or contain outdated values from previous iterations, leaving optimizer.step() with no directional guidance on how to adjust the weights.
+
+Challenge Question (Research / Interview Level)
+Suppose two researchers train the same model on the same dataset:
+Researcher A: Adam(lr=0.001)
+Researcher B: SGD(lr=0.001)
+After 10 epochs:
+Adam reaches 92% validation accuracy.
+SGD reaches 85% validation accuracy.
+Can you conclude that Adam is the better optimizer?
+If not, what additional information would you want before making that conclusion? Think beyond just the accuracy after 10 epochs.
+
+->no,we cannot conclude that.
+Why the Conclusion is Premature?
+->Different LR Dynamics: 0.001 is Adam's default baseline, but far too small for SGD without momentum.
+->Convergence Speed vs. Final Accuracy: Adam converges faster early on, but SGD often reaches better final test accuracy given more time.
+
+Additional Information Needed
+->Optimal Hyperparameters: SGD's performance with momentum (0.9) and higher learning rates (0.1, 0.01).
+More Epochs: Performance over 50–200 epochs to see if SGD overtakes Adam.
+->Generalization Gap: Train vs. validation loss curves to check if Adam is overfitting.
+->Regularization: How weight decay/L2 regularization is configured for each.

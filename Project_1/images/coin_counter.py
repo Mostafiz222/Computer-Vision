@@ -5,7 +5,7 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 
-img = cv2.imread("02_Classical_CV_Project/images/coin.jpg")
+img = cv2.imread("project_1/images/coin.jpg")
 img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
 plt.imshow(img)
