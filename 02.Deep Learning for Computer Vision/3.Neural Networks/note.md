@@ -123,7 +123,7 @@ Explain your reasoning mathematically, not just intuitively.
 ->
 final output is literally a linear equation (y=wx+b).
 
-lesson5:ReLU (Rectified Linear Unit).
+lesson3(continue):ReLU (Rectified Linear Unit).
 
 ReLU stands for Rectified Linear Unit.
 It is defined mathematically as:
@@ -166,3 +166,81 @@ By the Chain Rule, the incoming gradient is multiplied by the local derivative:
 d(loss)/dw = d(Loss)/d(ReLU) * d(relu)/dx * (dx/dw) 
 negative inputs (-4.2, -1.5), d(relu)/dx = 0, driving the entire weight gradient to zero
 For positive inputs (3.0, 7.2),d(relu)/dx = 1, allowing gradients to pass unchanged.
+
+Lesson4:Forward pass and loss function:
+
+A forward pass is the process of sending the input through the neural network to produce a prediction
+Regression
+Predicting:
+House price
+Temperature
+Stock value
+Common loss:Mean Squared Error (MSE)
+Classification
+Predicting:
+Cat
+Dog
+Car
+Airplane
+Common loss:Cross Entropy Loss
+5. Mean Squared Error (MSE)
+Formula:
+
+MSE=1/N(∑(y−y^)2
+Example:
+True:10
+Prediction:8
+Loss:(10−8)2
+=4
+Cross Entropy Loss
+For classification, the model outputs logits.
+Example:[2.1, 0.4, -1.3]
+Suppose the correct class is class 0.
+Cross Entropy encourages the model to assign the highest score to the correct class while penalizing high scores for incorrect classes.
+Unlike MSE, you should think of Cross Entropy as measuring how confidently the model predicts the correct class.
+
+Question 1
+What is a forward pass?
+The forward pass is the step where input data flows sequentially forward through the network's layers (matrix operations, biases, and activation functions) to generate a final prediction and compute the initial loss score.
+Question 2
+During the forward pass, are the model weights updated? Explain.
+No. The forward pass is strictly a computational evaluation step designed to measure performance. Model weights and biases are only updated later during the optimization step (optimizer.step()) using the gradients calculated during backpropagation (loss.backward()).
+Question 3
+Suppose the input shape is:
+(16, 128)
+Network:
+Linear(128→64)
+ReLU
+Linear(64→10)
+What is the output shape?
+Output Shape: (16, 10)
+Loss Functions
+Question 4
+What is the purpose of a loss function?
+A loss function measures the quantifiable error between the model's predictions and the true target labels. It provides a single scalar value that acts as the optimization target—telling backpropagation how wrong the model is so weights can be adjusted in the right direction.
+Question 5
+Which loss function would you choose for:
+Predicting house prices.
+MSELoss (Mean Squared Error) or L1Loss / MAE
+Reason: House pricing is a continuous regression problem. MSE penalizes larger prediction errors heavily.
+Classifying handwritten digits (0–9).
+CrossEntropyLoss.
+Reason: Digit classification is a multi-class categorization problem (10 mutually exclusive classes).
+Binary spam vs. not spam classification.
+BCEWithLogitsLoss (or BCELoss).
+Reason: Binary classification evaluates a single probability output between two distinct target classes (0 or 1).
+Question 6
+Can two models have the same accuracy but different loss values? Why?
+Yes. Accuracy measures binary outcomes (correct vs. incorrect predictions based on a threshold), while loss evaluates confidence levels.
+### Suppose two classifiers each achieve 80% accuracy on the same test set.
+
+Model A predicts the correct class with probabilities around 0.99 when correct.
+Model B predicts the correct class with probabilities around 0.55 when correct.
+Which model is likely to have the lower Cross Entropy Loss?
+Why?
+Which model would you generally trust more for deployment, assuming they have similar behavior on incorrect predictions?
+Model A will have the lower Cross-Entropy Loss.
+Cross-Entropy Loss measures not just whether a prediction is correct, but how confident the model is in its predictions. For a correct class with true label y = 1 and predicted probability p, binary cross-entropy loss is calculated as:{Loss} = -log(p)
+Model A is generally preferred for deployment, with two key qualifications:
+1.Better Confidence Separation
+2.The Calibration Caveat
