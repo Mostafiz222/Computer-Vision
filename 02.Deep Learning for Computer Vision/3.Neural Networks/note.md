@@ -308,3 +308,60 @@ Additional Information Needed
 More Epochs: Performance over 50–200 epochs to see if SGD overtakes Adam.
 ->Generalization Gap: Train vs. validation loss curves to check if Adam is overfitting.
 ->Regularization: How weight decay/L2 regularization is configured for each.
+
+Lesson6:training loop:
+A training loop is the process of repeatedly showing data to the model, measuring its mistakes, and updating its weights.
+Instead of learning from one example once, the model learns from the entire dataset many times.
+Dataset
+   │
+   ▼
+Forward Pass
+   │
+   ▼
+Loss
+   │
+   ▼
+Backward Pass
+   │
+   ▼
+Optimizer Step
+   │
+   ▼
+Repeat...
+Epoch vs Batch vs Iteration
+Suppose:
+Dataset = 10,000 images
+Batch size = 100
+100 images → 1 batch
+10,000 / 100 = 100 batches
+
+1 iteration = training on 1 batch
+100 iterations = 1 epoch
+10 epochs = model sees the dataset 10 times
+
+| Term      | Meaning                               |
+| --------- | ------------------------------------- |
+| Sample    | One training example                  |
+| Batch     | A group of samples                    |
+| Iteration | One optimizer update (one batch)      |
+| Epoch     | One complete pass through the dataset |
+
+Challenge Question
+You train a model for 100 epochs and observe:
+Training loss keeps decreasing.
+Training accuracy keeps increasing.
+Validation loss starts increasing after epoch 35.
+Validation accuracy stops improving after epoch 35.
+What phenomenon is likely occurring?
+Would you continue training to epoch 100?
+Name two common techniques to address this issue.
+### 1. Phenomenon
+
+**Overfitting.** The model is memorizing the training data patterns rather than learning generalizable features, leading to high variance.
+### 2. Would You Continue Training to Epoch 100?
+**No.** Training past epoch 35 degrades performance on unseen data. You should stop early or restore the model weights from epoch 35.
+### 3. Two Techniques to Address This
+* **Early Stopping:** Automatically halt training when validation loss stops improving for a specified number of epochs (patience) and save the best checkpoint.
+* **Regularization (Dropout / Weight Decay):** Add Dropout layers or L2 weight decay to penalize overly complex weights and force the model to learn broader patterns.
+
+
