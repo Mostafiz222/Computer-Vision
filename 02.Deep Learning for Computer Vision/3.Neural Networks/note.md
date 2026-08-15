@@ -55,3 +55,114 @@ This causes immediate breakage:
 1. **Attribute Error:** PyTorch will fail when you try to assign layers (e.g., `self.fc1 = nn.Linear(...)`) because the internal dictionary that tracks modules (`self._modules`) doesn't exist.
 2. **Untracked Parameters:** `model.parameters()` will throw an error or return an empty list because the parameter tracking system was never set up.
 3. **Broken Methods:** Commands like `model.to('cuda')` or `model.state_dict()` will crash.
+Lesson3:
+nn.Sequential is a container that automatically executes layers in the order you provide them.
+### Question 1: Main Purpose of `nn.Sequential`
+
+To group layers into a simple, linear chain where data flows sequentially from one layer directly into the next, avoiding the need to manually write a custom forward() method.
+
+---
+
+### Question 2: Biggest Difference: `nn.Sequential` vs. Custom `nn.Module`
+
+`nn.Sequential`: Handles simple, single-input to single-output pipelines automatically.
+Custom `nn.Module`: Allows full flexibility for complex data flows (multiple inputs/outputs, branching, skip connections, conditional logic).
+
+---
+
+### Question 3: Is `nn.Sequential` Good for ResNet Skip Connections?
+
+No. `nn.Sequential` only supports strict linear pipelines. Skip connections require branching and adding tensors (x + f(x)), which `nn.Sequential` cannot handle natively.
+
+---
+
+### Question 4: Model Breakdown
+model = nn.Sequential(
+    nn.Linear(3, 5),
+    nn.ReLU(),
+    nn.Linear(5, 2)
+)
+Ans:
+Input feature size:3
+Output feature size:2
+Linear layers:** 2 (Linear(3, 5) and Linear(5, 2))
+Activation layers:** 1 (`ReLU`)
+Total learnable parameters:32
+((3*5)+5)+((5*2)+2)=32
+
+
+### Challenge Question Answers |
+ 1. Simple feedforward classifier--> `nn.Sequential`--> Plain linear pipeline without branching. 
+ 2. U-Net (Segmentation) --> Custom `nn.Module` --> Requires complex skip connections between encoder and decoder layers. 
+ 3. Vision Transformer (ViT) -->  Custom `nn.Module` --> Uses multi-head attention, residual connections, and token reshaping. |
+ 4. Small CNN block --> `nn.Sequential` --> Simple sequential chain (`Conv` --> `ReLU` -->`MaxPool`). 
+ Lesson4:Activation function:
+ An activation function is a mathematical function applied after a layer computes its weighted sum.
+
+ Question 1: Primary Purpose of Activation Functions?
+ To introduce non-linearity into the network, enabling it to learn complex, non-linear patterns and decision boundaries (like curves, shapes, and language semantics).
+ Question 2: Why Multiple Linear Layers Without Activation Collapse?
+ Matrix multiplication is associative. Stacking linear transformations without non-linearities reduces mathematically to a single linear transformation.
+ Question 3: Where Activation Functions Are Placed?
+ Immediately after linear or convolutional operations and before the next layer's input (typically between hidden layers: Linear/Conv --> Activation --> Linear/Conv).
+ Question 4: Common Activation Functions by Architecture
+ ResNet:ReLU (Rectified Linear Unit)
+ Vision Transformer (ViT): GELU (Gaussian Error Linear Unit)
+ CLIP (ViT encoder): QuickGELU (an optimized approximation of GELU) or GELU
+ EfficientNet: Swish (also known as SiLU / Sigmoid Linear Unit)
+ model = nn.Sequential(
+    nn.Linear(100, 50),
+    nn.Linear(50, 20),
+    nn.Linear(20, 5)
+)
+Is this truly a deep neural network?
+->No. Structurally, it has multiple layers, but from a mathematical and representational perspective, it is not a deep neural network. It functions as a single-layer linear model.
+Could it learn more complex decision boundaries than a single nn.Linear(100, 5)?
+->No. It has the exact same representational capacity as a single nn.Linear(100, 5) layer. It cannot learn non-linear decision boundaries or more complex functions
+Explain your reasoning mathematically, not just intuitively.
+->
+final output is literally a linear equation (y=wx+b).
+
+lesson5:ReLU (Rectified Linear Unit).
+
+ReLU stands for Rectified Linear Unit.
+It is defined mathematically as:
+f(x)=max(0,x)
+This means:
+If the input is positive, return it unchanged.
+If the input is negative, return 0.
+->dying relu
+Since the output is always 0, its gradient is also 0.
+That neuron stops updating.
+It effectively becomes inactive.
+This is called the dying ReLU problem.
+If many neurons die, model capacity decreases.
+
+Question 1
+Using ReLU, compute the output for:
+[-6, 4, -2, 8, 0, -1]
+->Output: [0, 4, 0, 8, 0, 0]
+Question 2
+Why is ReLU considered non-linear, even though part of it is a straight line?
+Even though f(x) = x is linear for positive inputs, ReLU contains a kink (bend) at x = 0. Because it does not satisfy the mathematical property of linearity across its full domain.
+Question 3
+Why does ReLU generally train deep networks better than Sigmoid?
+No Vanishing Gradients: For positive inputs, ReLU's derivative is $1$, so gradients flow through deep networks without shrinking toward zero (unlike Sigmoid, whose maximum derivative is $0.25$).Computational Efficiency: Computing $\max(0, x)$ requires a simple threshold comparison instead of expensive exponential operations.
+Question 4
+What is the dying ReLU problem?
+If a neuron receives negative inputs across the entire dataset, its output stays $0$, and its gradient stays $0$. As a result, weight updates halt completely, and the neuron becomes permanently inactive ("dead") for all future training steps.
+Challenge Question (Interview Level)
+Suppose the output of a linear layer is:
+[-4.2, -1.5, 3.0, 7.2]
+What is the output after ReLU?
+Output after ReLU: [0, 0, 3.0, 7.2]
+Which neurons will receive gradients during backpropagation?
+Neurons receiving gradients: Neurons 3 and 4 (inputs 3.0 and 7.2).
+Which neurons will not update their weights?
+Neurons NOT updating weights: Neurons 1 and 2 (inputs -4.2 and -1.5).
+Explain why using the derivative of ReLU.
+The derivative of ReLU is:  d(relu)/dx = 1 if x > 0 x < 0 \
+By the Chain Rule, the incoming gradient is multiplied by the local derivative:
+d(loss)/dw = d(Loss)/d(ReLU) * d(relu)/dx * (dx/dw) 
+negative inputs (-4.2, -1.5), d(relu)/dx = 0, driving the entire weight gradient to zero
+For positive inputs (3.0, 7.2),d(relu)/dx = 1, allowing gradients to pass unchanged.
