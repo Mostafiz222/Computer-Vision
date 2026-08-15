@@ -364,4 +364,76 @@ Name two common techniques to address this issue.
 * **Early Stopping:** Automatically halt training when validation loss stops improving for a specified number of epochs (patience) and save the best checkpoint.
 * **Regularization (Dropout / Weight Decay):** Add Dropout layers or L2 weight decay to penalize overly complex weights and force the model to learn broader patterns.
 
+lesson7:Model Prediction (Inference)
 
+What is Inference?
+After training, we freeze the learned parameters and use the model to predict labels for new, unseen data.
+
+| Training           | Inference          |
+| ------------------ | ------------------ |
+| `model.train()`    | `model.eval()`     |
+| Computes gradients | No gradients       |
+| `loss.backward()`  | No backpropagation |
+| `optimizer.step()` | No optimizer       |
+| Updates weights    | Uses fixed weights |
+| Learns from data   | Predicts new data  |
+
+
+
+Question 1
+What is the difference between training and inference?
+->Training is the phase where the model learns parameters by processing data, calculating loss, and updating weights using gradients.
+Inference is the phase where a trained model applies those learned weights to new, unseen data to generate predictions—with gradients turned off and no parameter updates taking place.
+
+Question 2
+Why should we call model.eval() before making predictions?
+->model.eval() switches specific neural network layers (like Dropout and BatchNorm) from training mode to evaluation mode so predictions stay consistent and accurate.
+
+Dropout: In training mode, Dropout randomly zeroes out neurons to prevent memorization. In eval() mode, all neurons remain active, scaling their outputs so the model uses its full capacity.
+
+Batch Normalization: In training mode, BatchNorm calculates mean and variance from the current batch. In eval() mode, it freezes these calculations and uses running statistics collected throughout the entire training process.
+
+Question 3
+Why do we use torch.no_grad() during inference?
+->torch.no_grad() disables PyTorch's automatic differentiation engine (Autograd) during prediction.
+
+Saves Memory: Prevents PyTorch from allocating memory to store intermediate activations and computation graphs needed for backpropagation.
+
+Speeds Up Execution: Eliminates gradient calculation overhead, accelerating forward pass computations.
+
+Prevents Accidental Updates: Guarantees model parameters remain untouched during prediction.
+
+Question 4
+Explain the difference between:
+
+
+Logits
+
+Probabilities
+
+Predicted class
+
+->Logits: Raw, unnormalized scalar outputs directly from the model's final linear layer (range: $(-\infty, +\infty)$).Probabilities: Normalized values derived by applying Softmax (or Sigmoid) to the logits, scaling outputs into a $[0, 1]$ range that sums to $1.0$.Predicted Class: The discrete outcome index or category label selected by taking the maximum probability or highest logit score (argmax).
+
+Question 5
+
+Can you obtain the predicted class directly from logits without applying Softmax? Why?
+->Yes. You can obtain the predicted class directly from logits by taking torch.argmax(logits) without running Softmax first.Softmax is a strictly monotonic function. It exponentiates the logits and normalizes them, which changes their scale to probabilities but preserves their relative order.
+argmax simply returns the index of the maximum value, calculating torch.argmax(logits, dim=1) produces the exact same result as torch.argmax(softmax(logits), dim=1) while saving extra computation.
+
+Challenge Question
+Suppose a model outputs the following logits for a single image:
+[12.4, 11.8, -3.2, 0.5]
+Which class will be predicted?
+Is it necessary to compute Softmax to determine the predicted class?
+Why might you still apply Softmax in a real application?
+If the Softmax probability of the predicted class is only 0.42, what does that tell you about the model's confidence, even though it still predicts that class?
+
+->1. Predicted ClassClass 0 (the first index).
+2. Is Softmax Necessary to Determine the Predicted Class?
+No. Softmax preserves relative ordering (it is strictly monotonic). Since 12.4 is the largest raw score in the vector, torch.argmax() will return index 0 with or without Softmax.
+3. Why Apply Softmax in Real Applications?
+Interpretability & Thresholding: Converts arbitrary raw scores into human-interpretable percentages ($0\%$ to $100\%$), allowing system bounds like rejecting predictions where confidence falls below a cutoff (e.g., $< 80\%$).
+Out-of-Distribution / Safety Flags: Helps flag ambiguous cases for human review instead of blindly accepting the top-ranked class.Downstream Integration: Required when downstream systems expect a normalized probability distribution (e.g., ensemble model averaging, loss functions like KL divergence, or risk-scoring pipelines).
+4. What a 0.42 Probability IndicatesIt indicates?
+ high uncertainty / low confidence.Even though Class 0 is the model's top selection relative to the other options, a probability of $0.42$ ($42\%$) shows that the model is far from certain. The remaining $58\%$ of the probability mass is split across the other classes (likely heavily shared with Class 1, given its close logit of 11.8), signaling an ambiguous input, severe class overlap, or an out-of-distribution sample.
