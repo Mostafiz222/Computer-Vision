@@ -1,0 +1,146 @@
+Why CNN?
+-Problem 1 — Too Many Parameters
+Large models mean:
+More memory
+Slower training
+More overfitting
+More data required
+MLPs do not scale well with image size.
+Problem2 - Flattening Destroys Spatial Information
+Original:
+1 2 3
+4 5 6
+7 8 9
+Flattened:
+1 2 3 4 5 6 7 8 9
+The model no longer knows:
+which pixels are neighbors
+where edges are
+where corners are
+It only sees a long list of numbers.
+Why is this bad?
+Images are not random numbers.
+They contain:
+edges
+textures
+corners
+shapes
+objects
+These depend on neighboring pixels.
+CNNs preserve these local relationships.
+Key Idea of CNNs:Instead of looking at the whole image at once,CNNs look at small regions.
+Imagine reading a book.
+You don't look at every page simultaneously.
+You read:
+Word
+↓
+Sentence
+↓
+Paragraph
+↓
+Chapter
+CNN works exactly same:
+Pixels
+↓
+Edges
+↓
+Textures
+↓
+Shapes
+↓
+Objects
+##Why CNNs Work Better
+A CNN:
+looks at local regions
+reuses the same filter across the image
+preserves spatial information
+needs far fewer parameters
+generalizes better to real images
+
+| MLP                       | CNN                       |
+| ------------------------- | ------------------------- |
+| Flattens image            | Keeps image structure     |
+| Huge number of parameters | Parameter efficient       |
+| No spatial awareness      | Learns spatial patterns   |
+| Poor scalability          | Excellent scalability     |
+| Good for simple data      | Standard for vision tasks |
+
+
+##What is Convolution?
+->A convolution is an operation that extracts local features from an image.
+Instead of looking at the whole image, we look at a small window.
+
+What is a Filter (Kernel)?
+A filter (also called a kernel) is a small matrix of learnable numbers.
+Example:
+3×3 Filter
+-1  -1  -1
+-1   8  -1
+-1  -1  -1
+This particular filter highlights edges.
+A CNN does not use hand-designed filters. During training, it learns the filter values automatically.
+How Convolution Works?
+Suppose we have a small image.
+Image
+1 2 3
+4 5 6
+7 8 9
+Filter
+1 0
+0 1
+Place the filter on the first 2×2 region.
+1 2
+4 5
+Multiply element-wise:
+1×1 = 1
+2×0 = 0
+4×0 = 0
+5×1 = 5
+Add them:
+1 + 0 + 0 + 5 = 6
+The first output value is:6
+The same filter is reused across the entire image.
+This is called parameter sharing.
+Instead of learning millions of weights like an MLP, the CNN learns one small filter and applies it everywhere.
+#Feature Map
+The output of a convolution is called a feature map.
+Different filters learn different things.
+Example:
+Filter 1
+↓
+Edges
+Filter 2
+↓
+Corners
+Filter 3
+↓
+Textures
+Filter 4
+↓
+Curves
+Later layers combine these into:
+Eye
+↓
+Face
+↓
+Cat
+
+##Why Small Filters?
+Because:
+fewer parameters
+faster
+deeper networks
+better generalization
+why did output become 28*28 ti 26*26?
+
+Filter:3×3
+Without padding:
+Output size:
+28 - 3 + 1=26
+So:26×26
+##Padding
+Padding means adding extra pixels around the image.
+
+#Stride
+Stride controls how far the filter moves each time.
+Stride reduces image size while extracting features.
