@@ -144,3 +144,102 @@ Padding means adding extra pixels around the image.
 #Stride
 Stride controls how far the filter moves each time.
 Stride reduces image size while extracting features.
+
+Lesson 2:
+What is Pooling?
+Pooling summarizes a small region into one value.
+Example:
+Input:
+4 2
+1 8
+Max Pooling
+Take the maximum.
+Result:8
+Another example:
+1 3
+6 2
+Result:6
+The strongest feature survives.
+3. Max Pooling
+This is the most common pooling method.
+Example:
+Input
+1 3 2 1
+5 6 1 0
+2 4 8 3
+1 2 7 5
+Apply:
+2×2
+pooling.
+First block:
+1 3
+5 6
+Maximum:6
+Second block:
+2 1
+1 0
+Maximum:2
+Continue
+Final output:
+6 2
+4 8
+Notice:
+4×4
+↓
+2×2
+The spatial size becomes half.
+Max pooling helps the network remain less sensitive to such small shifts.
+This improves robustness
+#Average Pooling
+Instead of the maximum,Take the average.
+
+##Complete CNN architecture:
+Input
+↓
+Conv
+↓
+ReLU
+↓
+Pool
+↓
+Conv
+↓
+ReLU
+↓
+Pool
+↓
+Flatten
+↓
+Linear
+↓
+Output
+Visual pipeline:
+28×28×1(image)
+↓
+Conv(16)
+↓
+28×28×16
+↓
+Pool
+↓
+14×14×16
+↓
+Conv(32)
+↓
+14×14×32
+↓
+Pool
+↓
+7×7×32
+↓
+Flatten
+↓
+1568
+↓
+Linear
+↓
+128
+↓
+Linear
+↓
+10 Classes
