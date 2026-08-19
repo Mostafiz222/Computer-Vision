@@ -243,3 +243,32 @@ Linear
 Linear
 ↓
 10 Classes
+Lesson 3:training CNN:
+
+##Data augmentation:
+Instead of always showing the exact same image, we randomly modify it during training.
+Example:
+Original:🐱
+Random Flip:🙃
+Random Crop:
+Zoomed
+Random Rotation:
+Tilted:The label is still
+
+typical augmentation:
+transforms.RandomHorizontalFlip()
+transforms.RandomCrop()
+transforms.RandomRotation()
+
+Transfer Learning:
+Instead of training a CNN from scratch, we start with a model that has already been trained on a huge dataset.
+Imagine hiring two people.
+Person A
+Never seen an image before.
+Must learn everything.
+Person B
+Has already looked at 14 million images.
+Only needs to learn your new task.
+Who learns faster?
+Obviously Person B.
+That's transfer learning.
