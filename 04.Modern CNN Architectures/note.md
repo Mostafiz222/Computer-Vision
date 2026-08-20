@@ -382,3 +382,210 @@ The network grows gradually rather than doubling channels every few layers.
 | Need a strong, reliable backbone                    | ResNet                   |
 | Want maximum feature reuse and parameter efficiency | DenseNet                 |
 
+#Lesson8:EfficientNet
+The Traditional Way of Scaling CNNs
+Imagine you have a CNN.
+To improve accuracy, you have three options.
+Option 1 — Go Deeper
+10 Layers
+↓
+20 Layers
+↓
+50 Layers
+Pros:
+Learns more complex features.
+Cons:
+Slower.
+Harder to optimize.
+Option 2 — Go Wider
+64 Channels
+↓
+128 Channels
+↓
+256 Channels
+Pros:
+More expressive.
+Cons:
+Many more parameters.
+Higher memory usage.
+Option 3 — Increase Image Resolution
+224×224
+↓
+320×320
+↓
+512×512
+Pros:
+Preserves more detail.
+Cons:
+Much higher computation.
+The EfficientNet Insight
+Instead of scaling only one dimension:
+Scale all three together.
+This is called Compound Scaling.
+Depth
+   ▲
+   │
+   │
+Width ───────── Resolution
+Rather than increasing one axis dramatically, EfficientNet increases depth, width, and resolution in a balanced way.
+Compound Scaling
+Instead of:
+Depth ×2
+Width ×1
+Resolution ×1
+EfficientNet does something like:
+Depth ×1.2
+Width ×1.1
+Resolution ×1.15
+
+The exact scaling factors are determined through optimization, but the key idea is balance.
+EfficientNet Family
+| Model           | Relative Size   |
+| --------------- | --------------- |
+| EfficientNet-B0 | Baseline        |
+| EfficientNet-B1 | Slightly larger |
+| EfficientNet-B2 | Larger          |
+| EfficientNet-B3 | Medium          |
+| EfficientNet-B4 | Large           |
+| EfficientNet-B5 | Very Large      |
+| EfficientNet-B6 | Huge            |
+| EfficientNet-B7 | Extremely Large |
+
+Why EfficientNet Was Important
+
+Compared with previous CNNs, EfficientNet achieved:
+
+Higher accuracy.
+Fewer parameters.
+Faster inference.
+Better efficiency.
+
+For several years, it became one of the strongest CNN families.
+
+#lesson 9:ConvNeXt
+Vision Transformers had become state of the art.
+
+Many researchers believed CNNs had reached their limit.
+
+The ConvNeXt authors questioned this assumption.
+
+Instead of replacing CNNs with Transformers, they asked:
+
+What if we modernize CNNs using design principles from successful transformers while keeping convolutions?
+
+The Main Changes
+
+ConvNeXt kept convolution as its core operation but adopted several modern design choices.
+
+Larger Kernels
+
+Traditional CNN:
+
+3×3 Conv
+
+ConvNeXt:
+
+7×7 Depthwise Conv
+
+Larger kernels allow each convolution to see a broader region of the image.
+
+Depthwise Convolution
+
+Standard convolution mixes spatial and channel information together.
+
+Depthwise convolution processes each channel independently, making computation much more efficient.
+
+Standard Conv
+
+
+All Channels Together
+
+
+↓
+
+
+Output
+Depthwise Conv
+
+
+Channel 1
+
+
+Channel 2
+
+
+Channel 3
+
+
+↓
+
+
+Pointwise (1×1) Conv
+
+
+↓
+
+
+Output
+
+This combination is widely used in modern efficient CNNs.
+
+Modern Activation Functions
+
+Older CNNs:
+
+ReLU
+
+ConvNeXt commonly uses:
+
+GELU
+
+GELU provides smoother activation behavior and became popular through Transformers.
+
+Modern Normalization
+
+Older CNNs often use:
+
+BatchNorm
+
+ConvNeXt instead uses:
+
+LayerNorm
+
+LayerNorm is less dependent on batch statistics and aligns with transformer-style architectures.
+
+Simpler Design
+
+Unlike Inception, which has many parallel branches, ConvNeXt uses a cleaner and more uniform block structure.
+
+This simplicity makes implementation and optimization easier.
+
+ConvNeXt Block (Conceptually)
+Input
+   │
+Depthwise Conv (7×7)
+   │
+LayerNorm
+   │
+1×1 Conv
+   │
+GELU
+   │
+1×1 Conv
+   │
+Residual Connection
+   ▼
+Output
+
+#EfficientNet vs ConvNeXt
+
+| Feature          | EfficientNet               | ConvNeXt                              |
+| ---------------- | -------------------------- | ------------------------------------- |
+| Main Idea        | Compound scaling           | Modernize CNN design                  |
+| Year             | 2019                       | 2022                                  |
+| Scaling Strategy | Depth + Width + Resolution | Fixed architecture with modern blocks |
+| Activation       | Swish/SiLU                 | GELU                                  |
+| Normalization    | BatchNorm                  | LayerNorm                             |
+| Skip Connections | Yes                        | Yes                                   |
+| Goal             | Maximum efficiency         | Match transformer performance         |
+
