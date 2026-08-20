@@ -178,3 +178,207 @@ Problem 3: Slow Inference
 Because of its size, VGG is slower than more efficient architectures.
 
 These limitations motivated researchers to search for better designs, leading to Inception and later ResNet.
+
+
+#Lesson4:Inception (GoogLeNet)
+
+When processing an image, should we use:
+
+1×1 filters?
+3×3 filters?
+5×5 filters?
+
+There isn't a single correct answer.
+Small filters capture fine details.
+Large filters capture broader context.
+Instead of choosing one, Inception uses all of them simultaneously.
+The Inception Module
+Instead of a single convolution:
+Input
+  │
+3×3 Conv
+  │
+Output
+
+An Inception module does:
+
+                ┌────────1×1 Conv────────┐
+                │                        │
+Input ──────────┼────────3×3 Conv────────┤
+                │                        │
+                ├────────5×5 Conv────────┤
+                │                        │
+                └────────MaxPool─────────┘
+                         │
+                  Concatenate Outputs
+                         │
+                      Next Layer
+
+Every branch learns different kinds of features.
+
+Advantages
+Multi-scale feature extraction.
+Fewer parameters than VGG.
+Better computational efficiency.
+Won the 2014 ImageNet competition.
+Limitation
+Although efficient, Inception modules became increasingly complex to design and tune manually.
+Researchers wanted a simpler solution.
+
+#Lesson5:ResNet
+
+The Biggest Mystery
+Researchers expected:
+20-layer CNN
+↓
+30-layer CNN
+↓
+40-layer CNN
+↓
+Better Accuracy
+
+Instead, deeper networks often performed worse—not because they overfit, but because they became harder to optimize.
+This is known as the degradation problem.
+The Residual Idea
+Instead of learning:
+H(x)
+ResNet learns:
+F(x)=H(x)−x
+Then computes:
+Output=F(x)+x
+This creates a skip connection (or shortcut connection).
+Residual Block
+Traditional block:
+Input
+  │
+Conv
+  │
+ReLU
+  │
+Conv
+  │
+Output
+
+Residual block:
+
+          ┌──────────────┐
+Input ───►│ Conv → ReLU → Conv │
+   │      └──────────────┘
+   └──────────────┬────────────
+                  ▼
+               Addition
+                  ▼
+               ReLU
+                  ▼
+               Output
+
+The shortcut allows information and gradients to flow directly through the network.
+
+Why It Works
+
+During backpropagation, gradients can bypass difficult layers through the skip connection.
+
+This greatly reduces the vanishing gradient problem.
+
+As a result:
+
+ResNet-50
+ResNet-101
+ResNet-152
+
+became practical to train.
+
+Why ResNet Became So Popular
+
+Even today, ResNet is used as a backbone for:
+
+Object detection (Faster R-CNN)
+Segmentation (Mask R-CNN)
+Medical imaging
+Remote sensing
+Feature extraction
+Transfer learning
+
+If you encounter a CNN baseline in a research paper, there's a good chance it's a ResNet variant.
+
+The Question
+
+ResNet allows each layer to access the input through a shortcut.
+
+DenseNet asks:
+
+Why not allow every layer to access the outputs of all previous layers?
+
+Dense Connectivity
+
+Traditional CNN:
+
+Layer1 → Layer2 → Layer3 → Layer4
+
+ResNet:
+
+Input ───────────────► Layer3
+
+Lesson7:DenseNet:
+
+Layer1 ─────┐
+            ▼
+Layer2 ─────┼────► Layer3
+            ▼
+Layer4 receives:
+Layer1
+Layer2
+Layer3
+
+Each layer receives the concatenated feature maps from all preceding layers.
+
+Why Is This Useful?
+Feature Reuse
+
+Earlier features, such as edges or textures, don't need to be relearned.
+
+Later layers can reuse them directly.
+
+Better Gradient Flow
+
+There are many short paths from the loss back to earlier layers, making optimization easier.
+
+Parameter Efficiency
+
+Although DenseNet has many connections, each layer can be relatively narrow because it builds on existing features.
+
+Growth Rate
+
+Instead of producing a large number of new feature maps, each DenseNet layer adds only a small number.
+
+Example:
+
+Input Channels: 64
+
+
+Growth Rate: 32
+
+
+↓
+
+
+Output Channels: 96
+
+The network grows gradually rather than doubling channels every few layers.
+
+| Feature       | Inception                 | ResNet                             | DenseNet                                     |
+| ------------- | ------------------------- | ---------------------------------- | -------------------------------------------- |
+| Main Idea     | Parallel branches         | Skip connections                   | Dense connections                            |
+| Solves        | Computational efficiency  | Training very deep networks        | Feature reuse                                |
+| Key Operation | Concatenation of branches | Addition                           | Concatenation of previous outputs            |
+| Strength      | Multi-scale features      | Easy optimization                  | Efficient feature propagation                |
+| Weakness      | Complex design            | Many parameters in deeper variants | High memory usage due to stored feature maps |
+
+#when to use what:
+
+| Scenario                                            | Recommended Architecture |
+| --------------------------------------------------- | ------------------------ |
+| Need efficient multi-scale feature extraction       | Inception                |
+| Need a strong, reliable backbone                    | ResNet                   |
+| Want maximum feature reuse and parameter efficiency | DenseNet                 |
+
