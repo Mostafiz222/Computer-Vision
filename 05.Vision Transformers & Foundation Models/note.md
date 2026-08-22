@@ -216,3 +216,140 @@ Difference Between Single-Head and Multi-Head Attention
 #Component Roles in Information Processing
 ->Mixes information across tokens:** The **Multi-Head Self-Attention** layer. It aggregates feature vectors across different spatial/sequence positions based on their dynamic affinity scores.
 ->Processes each token independently:** The **Feed-Forward Network (FFN / MLP)** layer. It applies identical, position-wise non-linear transformations (typically two linear layers with an activation like GELU/ReLU) to each token vector independently without cross-token communication.
+
+
+#lesson3:Vision Transformer (ViT)
+
+Why do we need Vision Transformers? 
+CNNs have dominated Computer Vision for decades because they are excellent at learning local patterns such as edges, corners, and textures.
+However, CNNs have some inherent limitations
+They focus on local neighborhoods.
+Capturing long-range relationships requires many convolutional layers.
+Their inductive biases (locality and translation equivariance) make learning easier but can also limit flexibility.
+Transformers remove these assumptions and allow every image region to interact with every other region from the very first layer.
+#Step 1 — Split the Image into Patches
+Suppose we have a 224 × 224 × 3 RGB image.
+Choose a pa
+Each side contains:
+224 / 16 = 14 patches
+Therefore:
+14 × 14 = 196 patches
+The image becomes
+196 small images
+instead of one large image.
+#Step 2 — Flatten Each Patch
+Each patch has
+16 × 16 × 3
+=768 values
+Flatten it
+Patch
+↓
+768-dimensional vector
+Every patch now resembles a feature vector rather than a 2D image.
+#Step 3 — Linear Projection
+Instead of feeding the raw 768-dimensional vector to the Transformer, a learnable linear layer projects it into a fixed embedding size.
+Example:
+768
+↓
+768
+or
+768
+↓
+512
+depending on the model.
+These become the patch embeddings.
+#Step 4 — Add Positional Embeddings
+
+Transformers do not know where patches came from.
+
+Therefore we add learnable position vectors.
+Patch Embedding
++
+Position Embedding
+↓
+Final Token
+Now the model knows both:
+
+What the patch contains.
+Where it is located.
+Step 5 — Add the Classification Token (CLS Token)
+ViT introduces one extra learnable token.
+[CLS]
+Patch1
+Patch2
+...
+Patch196
+
+The CLS token collects information from all patches during self-attention.
+After the last Transformer layer, only the CLS token is passed to the classification head.
+Overall ViT Pipeline
+Input Image
+      │
+      ▼
+Split into Patches
+      │
+      ▼
+Flatten
+      │
+      ▼
+Linear Projection
+      │
+      ▼
+Add Position Embeddings
+      │
+      ▼
+Add CLS Token
+      │
+      ▼
+Transformer Encoder × L
+      │
+      ▼
+CLS Token
+      │
+      ▼
+MLP Head
+      │
+      ▼
+Prediction
+
+Why ViT Works
+
+Each patch attends to every other patch.
+
+Example:
+
+Car wheel
+
+↓
+
+can directly attend to
+
+↓
+
+Car window
+
+without needing many convolutional layers.
+
+The model naturally learns global object relationships.
+
+Advantages
+
+✅ Excellent scalability.
+
+✅ Learns global context immediately.
+
+✅ Works exceptionally well with very large datasets.
+
+✅ Strong transfer learning performance.
+
+Limitations
+
+❌ Requires huge datasets.
+
+❌ Training from scratch is expensive.
+
+❌ Computational cost grows quadratically with the number of patches (O(N²) attention).
+
+This limitation motivated the next generation of models.
+
+
