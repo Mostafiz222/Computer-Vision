@@ -633,4 +633,509 @@ CLIP learns by aligning images and text in a shared embedding space, enabling ze
 DINO learns visual representations without labels through self-distillation using teacher and student networks.
 DINOv2 builds on DINO with larger-scale, higher-quality training and produces stronger, more transferable visual features.
 
+#Lesson 9
+SigLIP (Sigmoid Loss for Language-Image Pretraining):
+Why Was SigLIP Created?
+CLIP was revolutionary, but it has one important limitation.
+Recall how CLIP is trained.
+Suppose a batch contains
+Dog
+Car
+Bird
+CLIP compares every image with every text inside the batch.
+This means training depends heavily on large batch sizes.
+Large batches require:
+many GPUs
+huge memory
+expensive hardware
+Google asked:
+Can we remove this dependency?
+The answer became SigLIP.
+CLIP's Loss
+CLIP uses
+Softmax Cross Entropy
+Inside one batch
+Image1
+competes against
+Text1
+Text2
+Text3
+...
 
+Every sample becomes a negative example for every other sample.
+This creates competition inside the batch.
+SigLIP's Idea
+
+Instead of asking
+
+Which text is the correct one among all texts?
+SigLIP asks
+Does this image match this text?
+Only Yes or No.
+That turns the problem into binary classification.
+Sigmoid Loss
+Instead of Softmax,
+SigLIP uses
+Sigmoid
+Each image-text pair is evaluated independently.
+Positive pair
+Dog image
++
+Dog caption
+↓
+Negative pair
+Dog image
++
+Car caption
+↓
+0
+Every pair has its own probability.
+No competition is needed.
+Why Is This Better?
+Since every pair is independent,
+training no longer requires massive batches.
+Advantages
+
+✅ Smaller GPU memory
+✅ Easier scaling
+✅ Better training efficiency
+✅ Often better retrieval performance
+
+Architecture
+The architecture is almost identical to CLIP.
+
+Image
+↓
+Vision Encoder
+↓
+Embedding
+↓
+Similarity
+↓
+Text Encoder
+↓
+Text Embedding
+
+The only major change is the loss function.
+
+| Feature                | CLIP        | SigLIP      |
+| ---------------------- | ----------- | ----------- |
+| Vision Encoder         | ViT         | ViT         |
+| Text Encoder           | Transformer | Transformer |
+| Shared Embedding Space | ✅           | ✅           |
+| Contrastive Learning   | ✅           | ✅           |
+| Softmax Loss           | ✅           | ❌           |
+| Sigmoid Loss           | ❌           | ✅           |
+| Needs Very Large Batch | Yes         | No          |
+
+One interesting question is:
+Does changing the pretraining objective (Softmax vs Sigmoid) influence robustness under distribution shift?
+That is a meaningful empirical research question because the representation learning objectives differ.
+
+#Lesson 10:Linear Probing
+What Is Linear Probing?
+Suppose you download a pretrained DINOv2.
+Should you retrain all 86 million parameters?
+Usually,
+No.
+Instead,
+freeze everything.
+Train only one linear layer.
+Image
+↓
+Frozen Backbone
+↓
+Feature Vector
+↓
+Linear Layer
+↓
+Prediction
+
+Why Freeze the Backbone?
+The backbone has already learned
+edges
+textures
+shapes
+semantics
+object parts
+We only need to learn
+Feature
+↓
+Class
+Linear Layer
+Mathematically
+Prediction
+=
+Wx+b
+Nothing more.
+No hidden layers.
+No attention.
+No convolution.
+Just one matrix multiplication.
+Why Researchers Use Linear Probing
+Suppose
+Model A
+95%
+Model B
+90%
+Both are frozen.
+The better result means
+Model A learned a stronger representation.
+Therefore,
+linear probing measures representation quality, not adaptation ability.
+Pipeline
+Dataset
+↓
+Frozen Model
+↓
+Extract Features
+↓
+Train Linear Layer
+↓
+Evaluate
+Advantages
+✅ Very fast
+✅ Very stable
+✅ Cheap
+✅ Fair comparison between backbones
+
+#Lesson 11:Fine-Tuning
+Why Fine-Tune?
+Sometimes,
+linear probing is not enough.
+Suppose the pretrained model was trained on
+Dogs
+Cars
+People
+Now you want
+Medical Images
+The features may not perfectly transfer.
+So we allow the backbone to adapt.
+Full Fine-Tuning
+Image
+↓
+Entire Model
+↓
+Update ALL Parameters
+Everything learns.
+Advantages
+✅ Highest possible accuracy
+Disadvantages
+❌ Expensive
+❌ Slow
+❌ High GPU memory
+❌ Can overfit on small datasets
+
+#Partial Fine-Tuning
+Instead of updating everything
+update only
+Last Block
+Classification Head
+This is often a good compromise.
+#Lesson 12:Parameter-Efficient Fine-Tuning (PEFT)
+Motivation
+Imagine a model has
+300 Million Parameters
+Updating everything
+means
+300 Million Gradients
+Large memory.
+Large GPU.
+Long training.
+Can we adapt the model
+without updating everything?
+PEFT says
+Yes.
+#Main Idea
+
+Freeze the pretrained model.
+Insert tiny trainable modules.
+Only those modules learn.
+Frozen Model
++
+Small Trainable Modules
+↓
+New Task
+Why Is PEFT Useful?
+Instead of updating
+100%
+of parameters,
+we update
+0.1%
+or
+1%
+depending on the PEFT method.
+
+LoRA (Low-Rank Adaptation)
+
+LoRA is the most widely used PEFT technique.
+
+Instead of changing a weight matrix directly,
+
+Original Weight
+
+W
+
+LoRA learns a low-rank update:
+
+ΔW = A × B
+
+where A and B are much smaller matrices than W.
+
+The effective weight becomes
+
+W + ΔW
+
+During training:
+
+W remains frozen.
+Only A and B are updated.
+
+This drastically reduces the number of trainable parameters.
+
+Visual Intuition
+Original Model
+↓
+Frozen
+↓
+Insert LoRA Layers
+↓
+Train Only LoRA
+↓
+Inference
+↓
+Original Weight + Learned Update
+
+<!-- #Why LoRA Works -->
+
+Many neural network updates have low intrinsic rank.
+Instead of learning a full matrix,
+a compact low-rank approximation often captures the necessary adaptation.
+
+| Method              |     Speed | GPU Memory | Trainable Parameters |                Typical Accuracy |
+| ------------------- | --------: | ---------: | -------------------: | ------------------------------: |
+| Linear Probe        | Very Fast |   Very Low |             Very Low |                Moderate to High |
+| Partial Fine-Tuning |    Medium |     Medium |        Low to Medium |                            High |
+| Full Fine-Tuning    |      Slow |       High |                  All | Highest (often, but not always) |
+| LoRA (PEFT)         |      Fast |        Low |             Very Low | Often close to full fine-tuning |
+
+
+| Method        | Main Idea                                                |
+| ------------- | -------------------------------------------------------- |
+| LoRA          | Low-rank weight updates                                  |
+| Adapters      | Small bottleneck layers inserted between existing layers |
+| Prompt Tuning | Learn task-specific prompt embeddings                    |
+| Prefix Tuning | Learn trainable prefixes for attention layers            |
+Lesson 13
+Adapter Tuning
+Motivation
+
+Suppose you have a pretrained ViT with 300 million parameters.
+
+Instead of changing the original weights, what if we insert tiny neural networks inside the model?
+
+Those tiny networks learn the new task.
+
+Everything else remains frozen.
+
+Main Idea
+
+Instead of
+
+Input
+
+↓
+
+Transformer Block
+
+↓
+
+Output
+
+we modify the block into
+
+Input
+
+↓
+
+Transformer
+
+↓
+
+Adapter
+
+↓
+
+Output
+
+The adapter is a small bottleneck MLP.
+Adapter Architecture
+A typical adapter looks like
+Input (768)
+↓
+Linear (768 → 64)
+↓
+ReLU / GELU
+↓
+Linear (64 → 768)
+↓
+Output
+Instead of learning a huge transformation,
+the adapter learns a compact correction.
+Why a Bottleneck?
+Example
+Original dimension
+768
+Adapter hidden size
+64
+Parameter count becomes much smaller.
+Instead of updating millions of weights,
+only the adapter parameters are trainable.
+Residual Adapter
+Most adapters use a residual connection.
+Output
+=
+Input
++
+Adapter(Input)
+The original representation is preserved, while the adapter adds task-specific information.
+Advantages
+✅ Very stable
+✅ Original model remains unchanged
+✅ Different adapters can be stored for different tasks
+✅ Good performance on many downstream tasks
+Disadvantages
+❌ Slightly increases inference latency because extra layers are executed.
+❌ More trainable parameters than LoRA in many configurations.
+Where Is It Used?
+Adapters were popular before LoRA and are still used in:
+Vision Transformers
+Multimodal models
+Language models
+Multi-task systems
+
+Lesson 14
+Prompt Tuning
+Motivation
+Suppose you have CLIP
+Instead of changing the model,
+what if you changed the input?
+That is Prompt Tuning.
+NLP Analogy
+Original prompt
+Translate English to French:
+Hello
+Prompt tuning learns a better prompt automatically.
+Vision Version
+Vision Transformers process tokens.
+Normally
+CLS
+Patch1
+Patch2
+Patch3
+Prompt Tuning inserts learnable prompt tokens.
+Prompt1
+Prompt2
+Prompt3
+CLS
+Patch1
+Patch2
+These prompt vectors are trainable.
+The backbone remains frozen.
+Training
+Only the prompt embeddings are updated.
+Everything else is frozen.
+Why Does It Work?
+The prompt acts like an instruction.
+Instead of modifying the model,
+it modifies the information entering the model.
+Advantages
+✅ Extremely parameter-efficient
+✅ Very small memory usage
+✅ Easy to switch between tasks
+Limitations
+❌ Usually less effective than LoRA for difficult adaptation tasks.
+❌ Performance depends on prompt design and optimization.
+Research Example
+Visual Prompt Tuning (VPT) is a well-known method for adapting Vision Transformers by learning only prompt tokens while freezing the backbone.
+Lesson 15
+Prefix Tuning
+Prompt Tuning modifies the input.
+Prefix Tuning goes one step further.
+It modifies the attention mechanism itself.
+Recall Self-Attention
+Attention uses
+Query
+Key
+Value
+Prefix Tuning learns extra
+Key
+Value
+vectors.
+Modified Attention
+Original
+Q
+K
+V
+Becomes
+Q
+Prefix K
+Original K
+Prefix V
+Original V
+The model now attends to both the learned prefixes and the original tokens.
+Intuition
+Imagine a teacher saying:
+"Before reading the question, remember these hints."
+Those hints are the learned prefixes.
+Advantages
+✅ More expressive than simple prompt tuning.
+✅ Still updates only a tiny fraction of parameters.
+Disadvantages
+❌ More complex implementation.
+❌ Less common in computer vision than LoRA or VPT.
+
+Lesson 16
+IA³ (Infused Adapter by Inhibiting and Amplifying Inner Activations)
+IA³ takes a different approach.
+Instead of adding layers or low-rank matrices,
+it learns scaling vectors.
+Main Idea
+Suppose the feature vector is
+[2.1, 0.4, 1.3]
+IA³ learns
+[0.8, 1.5, 0.3]
+The output becomes
+[1.68, 0.60, 0.39]
+Each feature is amplified or suppressed.
+Why Is It Efficient?
+Instead of learning a large weight matrix,
+IA³ learns only a few scaling coefficients.
+Advantages
+✅ Extremely few trainable parameters.
+✅ Very low memory consumption.
+Limitations
+❌ Less flexible than LoRA because it cannot introduce entirely new transformations.
+
+| Method                  | What is Learned?        | Extra Modules     | Typical Trainable Params | CV Usage | Strengths                                                 | Weaknesses                               |
+| ----------------------- | ----------------------- | ----------------- | -----------------------: | :------: | --------------------------------------------------------- | ---------------------------------------- |
+| **Linear Probe**        | Classifier head         | ❌                 |                    <0.1% |   ⭐⭐⭐⭐⭐  | Fastest, ideal for representation evaluation              | Cannot adapt backbone                    |
+| **BitFit**              | Bias terms              | ❌                 |                    <0.1% |     ⭐    | Simplest possible adaptation                              | Limited capacity                         |
+| **Prompt Tuning (VPT)** | Prompt tokens           | Prompt tokens     |                    ~0.1% |   ⭐⭐⭐⭐   | Excellent for ViTs, tiny memory footprint                 | May struggle on large domain shifts      |
+| **Prefix Tuning**       | Attention prefixes      | Prefix K/V        |                ~0.1–0.5% |    ⭐⭐    | More expressive than prompt tuning                        | Less common in vision                    |
+| **IA³**                 | Scaling vectors         | ❌                 |                    <0.1% |    ⭐⭐    | Extremely lightweight                                     | Less expressive than LoRA                |
+| **Adapters**            | Small bottleneck MLPs   | ✅                 |                    ~1–5% |    ⭐⭐⭐   | Stable, supports multi-task adapters                      | Adds inference latency                   |
+| **LoRA**                | Low-rank weight updates | Low-rank matrices |                  ~0.1–2% |   ⭐⭐⭐⭐⭐  | Excellent accuracy/efficiency trade-off, widely supported | Requires choosing target layers and rank |
+| **Full Fine-Tuning**    | All parameters          | ❌                 |                     100% |   ⭐⭐⭐⭐⭐  | Maximum adaptation capacity                               | Highest memory and compute cost          |
+
+
+Which Method Should You Choose?
+
+| Goal                                    | Recommended Method           |
+| --------------------------------------- | ---------------------------- |
+| Evaluate representation quality         | Linear Probe                 |
+| Very limited GPU memory                 | BitFit or IA³                |
+| Vision Transformer adaptation           | LoRA or Visual Prompt Tuning |
+| Multi-task deployment                   | Adapters                     |
+| Best balance of accuracy and efficiency | LoRA                         |
+| Maximum performance with ample compute  | Full Fine-Tuning             |
