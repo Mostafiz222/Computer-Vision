@@ -418,3 +418,219 @@ This greatly reduces computation.
 * **Why standard ViT is expensive:** Compute scales **quadratically** O(n^2) with the number of patches. Doubling image resolution increases attention memory/compute by 16 times.
 * **How shifted windows work:** Alternating layers shift local window boundaries diagonally. This connects patches from adjacent prior windows, allowing information to spread across the full image in O(n) linear time.
 * **Why Swin excels at detection/segmentation:** It builds a **hierarchical multi-scale feature pyramid** (1/4, 1/8, 1/16, 1/32), essential for detecting multi-size objects and mapping pixel-level boundaries.
+
+#Lesson 6:CLIP (Contrastive Language–Image Pretraining)
+
+Why Was CLIP Created?
+Traditional image classifiers work like this:
+
+Image
+↓
+Neural Network
+↓
+Dog
+
+The problem is that the model can only predict classes it has been trained on.
+If it has never seen "Red Panda" during training,
+it cannot recognize it.
+OpenAI asked a different question:
+Can a model understand images using natural language?
+#Instead of learning
+
+Image
+↓
+Class ID
+
+CLIP learns
+Image
+↔
+Text
+Core Idea
+
+Suppose we have
+Image of a dog
+Caption
+"A golden retriever playing."
+CLIP learns that
+Image Feature
+≈
+Text Feature
+Images and text are mapped into the same embedding space.
+
+Dual Encoder Architecture
+Unlike ViT,
+CLIP has two encoders.
+           Image
+              │
+              ▼
+      Vision Encoder
+              │
+      Image Embedding
+              │
+              │
+              ▼
+        Similarity
+              ▲
+              │
+      Text Embedding
+              │
+        Text Encoder
+              ▲
+              │
+          Caption
+
+The vision encoder can be:
+ResNet
+ViT
+The text encoder is usually a Transformer.
+
+Why Is CLIP Important?
+
+Instead of memorizing class IDs,
+
+it learns visual semantics.
+
+This makes it useful for:
+
+Image search
+Image retrieval
+Zero-shot classification
+Vision-language systems
+Multimodal AI
+
+* **Why two encoders?**
+One processes visual inputs (images) and the other processes textual inputs (text prompts) so both modalities can be encoded into separate vector representations.
+* **Why zero-shot classification works?**
+Class labels are formatted as natural language prompts (e.g., *"a photo of a [dog]"*). CLIP compares the image embedding against all text label embeddings and selects the closest semantic match.
+* **Why embeddings are in the same space?**
+To enable direct distance comparison (via cosine similarity). Aligning image and text embeddings into a shared vector space allows the model to measure how closely a visual concept matches a textual description.
+
+Lesson 7
+DINO (Self-Distillation with No Labels)
+The Motivation
+Collecting labeled datasets is expensive.
+Instead of using labels,
+can a model learn useful visual representations directly from images?
+DINO answers yes.
+
+Supervised vs Self-Supervised
+
+Traditional learning:
+
+Image
+
+↓
+
+Cat
+Needs labels.
+
+DINO:
+
+Image
+
+↓
+
+Representation
+No labels are required.
+
+Why Is DINO Popular?
+
+It produces excellent feature representations.
+
+Many downstream tasks use frozen DINO features because they transfer well.
+
+* **Why DINO doesn't require labels:**
+It uses **self-distillation (self-supervised learning)** where the model learns representations by predicting the output of one view of an image from another view of the same image, rather than fitting human-annotated class targets.
+* **Teacher network's role:**
+It generates stable target representations (pseudo-labels) for the student network to predict. Its weights are updated continuously as an **Exponential Moving Average (EMA)** of the student's weights to prevent collapsed representations.
+* **Multiple image augmentations used:**
+Passing different global (large region) and local (small crop) views forces the network to map both fine-grained local details and global scene context to the same semantic representation, teaching it invariant feature representations across scales and transformations.
+
+#Lesson 8:DINOv2
+Why Create DINOv2?
+
+DINO was already strong,
+
+but Meta wanted a model that could serve as a general-purpose visual foundation model.
+
+Goals:
+
+Better representations.
+Larger training data.
+Better scaling.
+Better transfer across many tasks.
+
+Major Improvements
+1. Better Training Data
+
+Meta curated a massive, high-quality dataset containing hundreds of millions of images.
+
+The emphasis was on quality and diversity rather than simply collecting more images.
+
+2. Larger Models
+
+DINOv2 is available in multiple sizes:
+
+Small
+Base
+Large
+Giant
+
+Larger models generally provide stronger representations at higher computational cost.
+
+3. Better Feature Quality
+
+Compared to DINO,
+
+DINOv2 produces features that are more:
+
+Robust
+General
+Transferable
+
+This makes them useful across classification, retrieval, segmentation, depth estimation, and other tasks.
+
+Why Researchers Like DINOv2
+
+Suppose you freeze the backbone.
+
+Even without fine-tuning,
+
+a simple linear classifier often achieves very competitive performance.
+
+This is why DINOv2 is frequently used as a feature extractor.
+
+Architecture
+
+The architecture is still based on Vision Transformers.
+
+Image
+
+↓
+
+Patch Embeddings
+
+↓
+
+ViT Encoder
+
+↓
+
+Feature Vector
+
+| Feature                      | CLIP                       | DINO                    | DINOv2                          |
+| ---------------------------- | -------------------------- | ----------------------- | ------------------------------- |
+| Uses Text                    | ✅                          | ❌                       | ❌                               |
+| Uses Labels                  | Image–Text Pairs           | ❌                       | ❌                               |
+| Self-Supervised              | Contrastive                | Self-Distillation       | Improved Self-Distillation      |
+| Zero-Shot Classification     | ✅                          | ❌                       | ❌                               |
+| Excellent Feature Extraction | ✅                          | ✅                       | ✅ (Stronger)                    |
+| Typical Downstream Use       | Vision–Language, Retrieval | Representation Learning | General-Purpose Vision Backbone |
+
+
+Key Takeaways
+CLIP learns by aligning images and text in a shared embedding space, enabling zero-shot classification.
+DINO learns visual representations without labels through self-distillation using teacher and student networks.
+DINOv2 builds on DINO with larger-scale, higher-quality training and produces stronger, more transferable visual features.
+
+
