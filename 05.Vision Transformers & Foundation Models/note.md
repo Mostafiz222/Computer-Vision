@@ -353,3 +353,68 @@ Limitations
 This limitation motivated the next generation of models.
 
 
+#Lesson 4:DeiT (Data-efficient Image Transformer)
+The Problem with ViT
+The original ViT paper achieved remarkable results, but it had one major drawback:
+It required hundreds of millions of images (JFT-300M) for effective training.
+Most researchers and companies do not have access to datasets of this scale.
+The question became:
+Can Transformers be trained effectively using only ImageNet-1K (~1.3 million images)?
+The answer was DeiT.
+ViT
++
+Better Training
+=
+DeiT
+
+Why It Helps
+
+The CNN teacher already captures useful visual patterns such as:
+edges
+textures
+shapes
+Instead of learning everything from scratch, the ViT benefits from this guidance.
+
+Training Objective
+
+The model optimizes two objectives:
+Classification loss (ground-truth labels)
+Distillation loss (teacher predictions)
+Together they improve data efficiency.
+
+#Lesson 5:Swin Transformer
+Standard ViT computes self-attention over all image patches.
+If an image has N patches:
+Attention Complexity
+O(N²)
+For high-resolution images, this becomes computationally expensive.
+Instead of attending globally,
+
+Swin Transformer attends locally within windows.
+Example:
+Entire Image
+↓
+Split into Windows
+↓
+Self-Attention inside each Window
+
+#Window-based Self-Attention
+Imagine a 224×224 image divided into many windows.
++----+----+
+| W1 | W2 |
++----+----+
+| W3 | W4 |
++----+----+
+Each window performs self-attention independently.
+This greatly reduces computation.
+| Feature                | ViT      | DeiT    | Swin              |
+| ---------------------- | -------- | ------- | ----------------- |
+| Global Attention       | ✅        | ✅       | ❌ (Local Windows) |
+| Shifted Windows        | ❌        | ❌       | ✅                 |
+| Hierarchical Features  | ❌        | ❌       | ✅                 |
+| Data Efficient         | Moderate | High    | High              |
+| High-Resolution Images | Limited  | Limited | Excellent         |
+
+* **Why standard ViT is expensive:** Compute scales **quadratically** O(n^2) with the number of patches. Doubling image resolution increases attention memory/compute by 16 times.
+* **How shifted windows work:** Alternating layers shift local window boundaries diagonally. This connects patches from adjacent prior windows, allowing information to spread across the full image in O(n) linear time.
+* **Why Swin excels at detection/segmentation:** It builds a **hierarchical multi-scale feature pyramid** (1/4, 1/8, 1/16, 1/32), essential for detecting multi-size objects and mapping pixel-level boundaries.
