@@ -295,3 +295,252 @@ With a batch size of 32, the model only sees 62 negative pairs per positive pair
 **SimCLR vs. Supervised Classifier Transferability**
 Supervised models discard any input information unnecessary for discriminating between their fixed training classes. SimCLR's instance discrimination task forces the backbone to preserve broad structural, textural, and contextual details, making those features far more versatile when adapting to completely new downstream targets.
 
+#Lesson 3: Self-Supervised Learning (SSL)
+Why Self-Supervised Learning?
+
+Deep learning has traditionally relied on large labeled datasets.
+
+For example:
+
+Dataset	Images	Labels Required
+MNIST	70K	Yes
+CIFAR-10	60K	Yes
+ImageNet	14M+	Yes
+Creating these labels is:
+Expensive
+Time-consuming
+Error-prone
+Difficult in specialized domains (e.g., medicine, satellite imagery)
+Meanwhile, billions of unlabeled images already exist.
+The central question becomes:
+Can a model learn useful visual representations without human annotations?
+SSL answers yes.
+
+The Three Learning Paradigms
+1. Supervised Learning
+Image
+   ↓
+Human Label
+   ↓
+Model
+Example:
+Dog Image → Dog
+Needs human annotation.
+
+2. Unsupervised Learning
+No labels.
+Typical tasks include:
+Clustering
+Dimensionality reduction
+Density estimation
+The model discovers patterns but is not directly optimized for downstream prediction tasks.
+
+3. Self-Supervised Learning
+
+No human labels.
+
+Instead, the data itself generates the supervision signal.
+Example:
+Original Image
+↓
+Create two augmented views
+↓
+Learn that both views belong together
+No human labeled the image.
+The supervision comes from the image itself.
+What Is a Pretext Task?
+A pretext task is an automatically generated task whose purpose is not the final application, but learning useful representations.
+Think of it as practice before the real exam.
+Examples:
+Predict missing image patches
+Match two augmented views
+Predict image rotation
+Match image and text
+Reconstruct masked regions
+The downstream task might later be:
+Classification
+Detection
+Segmentation
+Retrieval
+
+#SSL Training Pipeline
+
+A typical SSL workflow is:
+Large Unlabeled Dataset
+          │
+          ▼
+Self-Supervised Pretraining
+          │
+          ▼
+Learn General Representations
+          │
+          ▼
+Fine-tune or Linear Probe
+          │
+          ▼
+Downstream Task
+This is exactly how many modern Vision Foundation Models are trained.
+
+#Real-World Applications
+
+SSL is widely used in:
+
+Medical imaging (limited expert labels)
+Satellite imagery
+Robotics
+Autonomous driving
+Manufacturing defect detection
+Video understanding
+Vision-language models
+
+Pipeline (1M Unlabeled + 1K Labeled)
+
+SSL Pre-training: Train a backbone (e.g., SimCLR, MAE) on the 1M unlabeled images using contrastive learning or masked reconstruction to extract general visual features.
+
+Supervised Fine-Tuning: Freeze or low-learning-rate fine-tune the encoder on the 1K labeled images with a linear classification head.
+
+Can SSL Replace Supervised Learning?
+
+No. SSL learns general representations, but final task-specific mapping, class definition, evaluation, and fine-grained alignment still require labeled ground truth.
+
+Why SSL Transfers Better
+
+No Label Bias: Supervised models throw away features irrelevant to target labels (e.g., background context). SSL retains overall visual structure.
+
+Fewer Shortcuts: Prevents the model from over-indexing on simple visual shortcuts (like background color) to predict a category.
+
+Richer Representations: Pretext tasks force the network to encode spatial, textural, and structural visual geometry across the entire image distribution.
+
+#Lesson 4: Domain Adaptation
+What is a Domain?
+A domain is the environment or distribution from which data comes.
+A domain is defined by:
+Input data distribution
+Image characteristics
+Sensor type
+Lighting
+Background
+Weather
+Camera properties
+
+| Dataset          | Domain                             |
+| ---------------- | ---------------------------------- |
+| CIFAR-10         | Small natural images               |
+| CIFAR-100        | Small natural images (100 classes) |
+| ImageNet         | High-resolution internet images    |
+| Chest X-rays     | Medical imaging                    |
+| Satellite Images | Remote sensing                     |
+| Thermal Images   | Infrared imaging                   |
+
+
+Why Does Domain Shift Hurt Performance?
+A model learns statistical patterns from the training data.
+For example:
+During training:
+Cats usually appear on bright backgrounds.
+During testing:
+Cats appear in low light.
+The learned representation may no longer match the new distribution.
+As a result:
+Accuracy drops
+Confidence decreases
+Predictions become unreliable
+This is one of the biggest challenges in deploying AI systems.
+
+What is Domain Adaptation?
+Domain Adaptation aims to transfer knowledge from one domain (source) to another (target).
+Source Domain
+(Labeled)
+↓
+Train Model
+↓
+Adapt
+↓
+Target Domain
+(Few or No Labels)
+
+Types of Domain Adaptation
+1. Supervised Domain Adaptation
+
+Target domain has labels.
+
+Example:
+
+Source: Hospital A (labeled)
+Target: Hospital B (also labeled)
+
+The target labels are available during adaptation.
+
+2. Semi-Supervised Domain Adaptation
+
+Target domain has only a small number of labels.
+
+Example:
+
+50,000 labeled source images
+500 labeled target images
+
+The model uses both labeled and unlabeled target data.
+
+Unsupervised Domain Adaptation (UDA)
+
+The most common research setting.
+
+Source:
+Labeled
+Target:
+Unlabeled
+Goal:
+Learn a model that performs well on the unlabeled target domain.
+
+How Domain Adaptation Works (High Level)
+
+Different methods exist, but most aim to make source and target features similar.
+Source Images
+      │
+      ▼
+ Feature Extractor
+      │
+      ▼
+ Feature Space
+      ▲
+      │
+Target Images
+
+Domain Adaptation vs Transfer Learning
+| Transfer Learning                  | Domain Adaptation                      |
+| ---------------------------------- | -------------------------------------- |
+| Reuse pretrained model             | Adapt to a different data distribution |
+| Usually fine-tune on target labels | Often has few or no target labels      |
+| Focus on task transfer             | Focus on distribution shift            |
+
+Real-World Applications
+
+Domain Adaptation is widely used in:
+
+Autonomous driving
+Medical imaging across hospitals
+Satellite imagery across regions
+Manufacturing inspection
+Agricultural drones
+Security cameras with different lighting
+Robot vision across environments
+
+Challenge Questions
+1.You train a crop disease detector using drone images from Bangladesh and deploy it in Brazil. What types of domain shift might occur?
+2.Why is unsupervised domain adaptation often considered more practical than supervised domain adaptation?
+3.If source and target domains are extremely different (e.g., cartoons → X-rays), would domain adaptation still be effective? Why or why not?
+
+**1. Domain Shift (Bangladesh → Brazil)**
+
+* **Covariate Shift:** Visual differences in soil, lighting, drone altitude, leaf angles, and crop varieties.
+* **Prior Shift:** Disease prevalence differs due to climate and regional farming practices.
+* **Concept Shift:** Lookalike symptoms (e.g., heat stress in Brazil looking like a fungal infection from Bangladesh).
+
+**2. Why Unsupervised DA (UDA) is More Practical**
+
+* **Zero Label Cost:** Raw target data is free to collect, whereas target labels require expert manual annotation (e.g., agronomists).
+* **Autonomous Deployment:** Systems can self-adapt on the fly without waiting for human labeling workflows.
+
+**3. Extreme Shift (Cartoons → X-rays)**
+**No, domain adaptation will fail.** DA assumes shared structural and semantic feature spaces. Cartoons and X-rays share almost no common textures, geometry, or semantics, causing **negative transfer** where distribution alignment degrades model performance.
