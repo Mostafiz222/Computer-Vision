@@ -1,0 +1,1139 @@
+Object Detection
+Object Detection Dataset Structure
+
+Unlike classification, where each image has one label:
+image.jpg → dog
+Detection datasets need information about every object.
+Example:
+Image:
+street.jpg
+Annotation:
+Person
+Box: (50,80,120,300)
+Car
+Box: (200,100,450,250)
+Bicycle
+Box: (500,200,650,400)
+So every image contains:
+Image file
+Object classes
+Bounding boxes
+
+| Feature     | COCO     | YOLO                  |
+| ----------- | -------- | --------------------- |
+| Format      | JSON     | TXT                   |
+| Box         | x,y,w,h  | center_x,center_y,w,h |
+| Coordinates | Pixels   | Normalized            |
+| Common use  | Research | Training YOLO models  |
+
+Complete Detection Pipeline
+
+Now we can understand the full flow:
+
+Image
+ |
+ |
+Backbone
+ |
+ |
+Features
+ |
+ |
+Detection Head
+ |
+ |
+Predictions
+ |
+ |
+Confidence Filtering
+ |
+ |
+NMS
+ |
+ |
+Evaluation
+ |
+ |
+mAP
+
+Two-Stage Detectors (R-CNN → Faster R-CNN)
+The Core Problem Before Modern Detectors
+
+A normal CNN classifier does this:
+Image
+  ↓
+CNN
+  ↓
+Class
+
+Example:
+
+Image → Dog
+
+But detection requires:
+
+Image
+  ↓
+Where are objects?
+  ↓
+What are objects?
+The question becomes:
+How do we find possible object locations?
+This led to the idea of region proposals.
+
+Two-Stage Detection Idea
+
+The name tells you the concept.
+
+Stage 1
+
+Find possible object regions.
+
+Question:
+
+"Where could objects exist?"
+
+Stage 2
+
+Classify those regions.
+
+Question:
+
+"What is inside each region?"
+
+Pipeline:
+
+Image
+
+ ↓
+
+Region Proposal
+
+ ↓
+
+Classification + Box Refinement
+
+ ↓
+
+Final Detection
+
+R-CNN (Region-based CNN)
+
+The original R-CNN introduced this idea.
+
+Step 1 — Generate Regions
+
+An algorithm proposes thousands of possible boxes.
+
+Example:
+
+Image
+
++----------------+
+|                |
+|  Box 1         |
+|     +----+     |
+|     |    |     |
+|     +----+     |
+|                |
+|  Box 2         |
+|       +----+   |
+|       |    |   |
+|       +----+   |
++----------------+
+
+These are called:
+
+Region Proposals
+
+Step 2 — Run CNN on Each Region
+
+Each proposed box is:
+
+Region
+   ↓
+CNN
+   ↓
+Feature Vector
+
+Example:
+
+Region 1 → Dog probability
+Region 2 → Car probability
+Region 3 → Person probability
+Step 3 — Predict Box Adjustment
+
+The model improves the box location.
+
+Example:
+
+Initial proposal:
+
++----------+
+|          |
+|   Dog    |
+|          |
++----------+
+
+Prediction:
+
+ +------+
+ | Dog  |
+ +------+
+
+Better alignment.
+
+Problem with R-CNN
+
+R-CNN works, but it is extremely slow.
+
+Why?
+
+Because every region goes through the CNN separately.
+
+Example:
+
+2000 regions
+
+2000 CNN passes
+
+Very expensive.
+
+
+#Fast R-CNN
+
+The improvement:
+
+Instead of running CNN 2000 times:
+
+Run CNN once.
+
+Image
+ |
+ CNN
+ |
+Feature Map
+
+Then extract features for each region.
+
+Concept:
+
+Image
+ |
+Backbone CNN
+ |
+Feature Map
+ |
+Region Features
+ |
+Classifier
+
+Much faster.
+
+5. Faster R-CNN
+
+The biggest improvement:
+
+Remove the external region proposal algorithm.
+
+Instead, learn proposals using a neural network.
+
+Architecture:
+
+Input Image
+
+      |
+      ↓
+
+Backbone
+(ResNet)
+
+      |
+      ↓
+
+Feature Maps
+
+      |
+      ↓
+
+Region Proposal Network
+(RPN)
+
+      |
+      ↓
+
+Object Classification
++
+Bounding Box Regression
+
+      |
+      ↓
+
+Detection
+Important Components
+Backbone
+
+Extracts features.
+
+Examples:
+
+ResNet
+VGG
+ConvNeXt
+
+Input:
+
+Image
+
+Output:
+
+Feature Map
+Region Proposal Network (RPN)
+
+This is the special part of Faster R-CNN.
+
+It answers:
+
+"Which regions are likely to contain objects?"
+
+Example:
+
+Before:
+
+Thousands of possible boxes
+
+After RPN:
+
+300 useful proposals
+Detection Head
+
+For each proposal:
+
+Predict:
+
+Object class
+Better bounding box
+
+Example:
+
+Proposal
+
+     ↓
+
+Class:
+Car
+
+Box:
+(50,70,200,220)
+
+###One-Stage Detectors (SSD, RetinaNet, YOLO)
+
+Why One-Stage Detection?
+
+From the previous lesson:
+
+Faster R-CNN
+
+Two stages:
+
+Image
+ |
+ ↓
+Find regions
+ |
+ ↓
+Classify regions
+ |
+ ↓
+Boxes + Classes
+
+Problem:
+
+It is accurate but slower.
+
+For applications like:
+
+drones
+traffic cameras
+robots
+autonomous systems
+
+we need:
+
+fast inference
+simple deployment
+
+This created one-stage detectors.
+
+2. One-Stage Detector Idea
+
+Instead of:
+
+"Find possible objects first, then classify them"
+
+One-stage detectors directly predict:
+
+"Where are objects and what are they?"
+
+Pipeline:
+
+Image
+
+ ↓
+
+Backbone
+
+ ↓
+
+Feature Maps
+
+ ↓
+
+Detection Head
+
+ ↓
+
+Boxes + Classes + Confidence
+
+No region proposal step.
+
+SSD (Single Shot Detector)
+
+SSD was one of the first successful one-stage detectors.
+
+The main idea:
+
+Predict objects at different locations and different scales.
+RetinaNet
+
+RetinaNet solved an important problem.
+
+The Problem: Class Imbalance
+
+In an image:
+
+Most locations are background.
+
+Example:
+
+Image pixels:
+
+Background:
+████████████████████
+
+Objects:
+██
+
+The detector sees millions of negative examples.
+
+This makes training difficult.
+
+6. Focal Loss
+
+RetinaNet introduced Focal Loss.
+
+Idea:
+
+Give more importance to difficult examples.
+
+Normal loss:
+
+Easy examples dominate.
+
+Focal loss:
+
+Hard examples get more attention.
+
+Example:
+
+Easy:
+
+Background confidence = 99%
+
+Ignore more
+
+Hard:
+
+Small object confidence = 40%
+
+Focus training here
+
+This improved one-stage detector accuracy significantly.
+
+####YOLO — You Only Look Once
+
+YOLO changed object detection because of one idea:
+
+Treat detection as a single prediction problem.
+
+Instead of many steps:
+
+Image
+
+→ Regions
+
+→ Classification
+
+→ Boxes
+
+YOLO:
+
+Image
+
+↓
+
+Neural Network
+
+↓
+
+All detections
+8. YOLO Architecture (Concept)
+
+A YOLO model has:
+
+Backbone
+
+Extract features.
+
+Examples:
+
+CSPDarknet
+ConvNeXt
+EfficientNet
+Neck
+
+Combines features from different scales.
+
+Common techniques:
+
+FPN
+PANet
+
+Purpose:
+
+Help detect:
+
+small objects
+medium objects
+large objects
+Detection Head
+
+Predicts:
+
+Bounding box
+x,y,w,h
+Class
+car
+person
+dog
+Confidence
+0.95
+
+Complete:
+
+Image
+
+ ↓
+
+Backbone
+
+ ↓
+
+Neck
+
+ ↓
+
+Detection Head
+
+ ↓
+
+NMS
+
+ ↓
+
+Final Boxes
+
+#Faster R-CNN vs YOLO
+|            | Faster R-CNN | YOLO        |
+| ---------- | ------------ | ----------- |
+| Type       | Two-stage    | One-stage   |
+| Speed      | Medium       | Fast        |
+| Accuracy   | Very high    | High        |
+| Deployment | Harder       | Easier      |
+| Real-time  | Limited      | Excellent   |
+| Research   | Common       | Very common |
+
+Using YOLO in Practice
+
+Modern workflow:
+
+Dataset
+
+↓
+
+YOLO format annotations
+
+↓
+
+Train YOLO model
+
+↓
+
+Validate
+
+↓
+
+Inference
+
+↓
+
+Deploy
+
+#segmentation:
+Classification
+
+Question:
+
+What is in the image?
+
+Example:
+
+Image
+
+      ↓
+
+Dog
+
+Output:
+
+dog = 95%
+
+No location.
+
+Object Detection
+
+Question:
+
+What objects exist and where?
+
+Output:
+
+Dog
+Bounding box
+
+Example:
+
++-------------+
+|             |
+|    DOG      |
+|             |
++-------------+
+
+But the box includes background.
+
+Segmentation
+
+Question:
+
+Which exact pixels belong to the object?
+
+Output:
+
+Background
+Background
+Dog pixels
+Dog pixels
+Background
+
+Every pixel gets a label.
+
+ypes of Segmentation
+
+There are three important types.
+
+A. Semantic Segmentation
+
+Every pixel gets a class.
+
+Example:
+
+Road scene:
+
+sky      → blue
+road     → gray
+car      → red
+person   → green
+
+Important:
+
+Two cars have the same label.
+
+Example:
+
+Car 1
+Car 2
+
+Both:
+
+class = car
+
+They are not separated.
+
+B. Instance Segmentation
+
+Separates individual objects.
+
+Example:
+
+Semantic:
+
+car car car
+
+Instance:
+
+car-1
+car-2
+car-3
+
+Each object gets its own mask.
+
+Used in:
+
+robotics
+autonomous driving
+counting objects
+C. Panoptic Segmentation
+
+Combination:
+
+Semantic + Instance.
+
+Example:
+
+Road → semantic
+
+Car1 → instance
+
+Car2 → instance
+
+Person1 → instance
+
+It gives complete scene understanding.
+
+3. Segmentation Mask
+
+A mask is an image where every pixel contains a label.
+
+Original image:
+
+RGB
+
+512 × 512 × 3
+
+Mask:
+
+512 × 512 × 1
+
+Example:
+
+Pixel values:
+
+0 = background
+
+1 = road
+
+2 = car
+
+3 = person
+
+Example:
+
+Original:
+
+🚗 🚗 🌳
+
+Mask:
+
+2 2 0
+2 2 0
+0 0 0
+4. Segmentation Model Pipelin
+
+Image
+
+ ↓
+
+CNN / Transformer Backbone
+
+ ↓
+
+Feature Representation
+
+ ↓
+
+Segmentation Head
+
+ ↓
+
+Pixel Prediction
+
+ ↓
+
+Mask
+Detection vs Segmentation Summary
+
+| Task                  | Output          |
+| --------------------- | --------------- |
+| Classification        | Class           |
+| Detection             | Class + Box     |
+| Semantic Segmentation | Class per pixel |
+| Instance Segmentation | Object mask     |
+| Panoptic Segmentation | Everything      |
+
+Must Remember
+Segmentation predicts labels for every pixel.
+Semantic segmentation groups objects by class.
+Instance segmentation separates individual objects.
+Masks are pixel-level labels.
+mIoU is the main segmentation metric.
+Dice is important for medical segmentation.
+
+Segmentation Architectures
+Goal
+
+Understand the important segmentation architectures:
+
+FCN
+U-Net
+DeepLab
+Mask R-CNN
+Modern segmentation models
+
+We will focus on why they were created and when to use them, not implementation details.
+
+1. The Main Challenge of Segmentation
+
+A classification CNN does:
+
+Image
+  ↓
+CNN
+  ↓
+Class
+
+Example:
+
+Dog
+
+But segmentation needs:
+
+Image
+  ↓
+CNN
+  ↓
+Pixel prediction
+  ↓
+Mask
+
+The problem:
+
+CNNs reduce image size.
+
+Example:
+
+Input:
+
+512 × 512
+
+After CNN layers:
+
+32 × 32 feature map
+
+We lose spatial details.
+
+A segmentation model must:
+
+Understand objects
+Recover exact pixel locations
+
+This creates the need for special architectures.
+
+2. FCN (Fully Convolutional Network)
+
+FCN was one of the first deep learning segmentation models.
+
+The main idea:
+
+Replace fully connected layers with convolution layers.
+
+Normal CNN:
+
+Image
+
+↓
+
+Convolution
+
+↓
+
+Fully Connected
+
+↓
+
+Class
+
+FCN:
+
+Image
+
+↓
+
+Convolution
+
+↓
+
+Feature Map
+
+↓
+
+Segmentation Mask
+How FCN Creates Masks
+
+CNN produces low-resolution features:
+
+Example:
+
+Original:
+
+512×512
+
+
+Feature:
+
+32×32
+
+FCN uses:
+
+Upsampling
+
+to recover size.
+
+32×32
+
+↓
+
+64×64
+
+↓
+
+128×128
+
+↓
+
+512×512
+
+Final output:
+
+Pixel labels
+Problem with FCN
+
+The output is blurry.
+
+Why?
+
+Because:
+
+deep layers understand objects
+shallow layers contain details
+
+FCN does not combine them well.
+
+This led to U-Net.
+
+3. U-Net
+
+U-Net is one of the most important segmentation architectures.
+
+Especially in:
+
+medical imaging
+satellite images
+scientific images
+
+The name comes from its shape:
+
+Encoder          Decoder
+
+
+    ↓              ↑
+
+     ↓          ↑
+
+       ↓      ↑
+
+          ↓
+
+Looks like:
+
+        U
+U-Net Architecture
+Encoder
+
+The left side.
+
+Purpose:
+
+Extract features.
+
+Example:
+
+Input:
+
+MRI image
+
+Encoder learns:
+
+edges
+textures
+shapes
+Decoder
+
+The right side.
+
+Purpose:
+
+Recover spatial information.
+
+Produces:
+
+Segmentation mask
+The Key Idea: Skip Connections
+
+This is what makes U-Net powerful.
+
+Problem:
+
+Encoder loses details.
+
+Solution:
+
+Copy early features directly to decoder.
+
+Example:
+
+Encoder Feature
+      |
+      |
+      ↓
+
+Decoder Feature
+
+The decoder receives:
+
+High-level information
+"this is a tumor"
+Low-level information
+exact boundary
+
+Example:
+
+Without skip connection:
+
+Tumor detected
+but boundary is poor
+
+With skip connection:
+
+Tumor detected
+and boundary is accurate
+Why U-Net Is Still Popular
+
+Because it works extremely well with limited data.
+
+Medical datasets often have:
+
+few images
+expensive annotations
+
+U-Net performs well in these situations.
+
+Modern Segmentation Models
+
+Today, segmentation is moving toward foundation models.
+
+Examples:
+
+SAM (Segment Anything Model)
+
+Idea:
+
+Instead of training one model for one task:
+
+Input image
+
++
+Prompt
+
+↓
+
+Mask
+
+Prompt can be:
+
+point
+box
+text
+
+Example:
+
+Image:
+
+A street
+
+Prompt:
+
+click on car
+
+Output:
+
+car mask
+Vision Foundation Models
+
+Modern models:
+
+DINOv2
+CLIP
+SAM
+
+are used as powerful feature extractors.
+
+Pipeline:
+
+Image
+
+↓
+
+Foundation Model
+
+↓
+
+Features
+
+↓
+
+Segmentation Head
+
+↓
+
+Mask
+
+
+| Model      | Type         | Main Use             |
+| ---------- | ------------ | -------------------- |
+| FCN        | Semantic     | Early segmentation   |
+| U-Net      | Semantic     | Medical/scientific   |
+| DeepLab    | Semantic     | General scenes       |
+| Mask R-CNN | Instance     | Object-level masks   |
+| SAM        | Prompt-based | General segmentation |
+
+
