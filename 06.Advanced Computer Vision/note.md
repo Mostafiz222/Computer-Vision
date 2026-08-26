@@ -544,3 +544,398 @@ Challenge Questions
 
 **3. Extreme Shift (Cartoons → X-rays)**
 **No, domain adaptation will fail.** DA assumes shared structural and semantic feature spaces. Cartoons and X-rays share almost no common textures, geometry, or semantics, causing **negative transfer** where distribution alignment degrades model performance.
+
+Lesson 5: Domain Generalization
+Imagine you train an image classifier using photos collected in:
+
+Bangladesh
+India
+Nepal
+Now you deploy it in:
+Brazil
+You have never seen any Brazilian data during training.
+Can the model still perform well?
+This is exactly the goal of Domain Generalization.
+
+Domain Generalization
+During training:
+Source Domain 1 ✓
+Source Domain 2 ✓
+Source Domain 3 ✓
+Target Domain ✗
+The target domain is completely unseen.
+The model must generalize without ever observing target data.
+
+#Meta-Learning
+Training simulates domain shift.
+Example:
+Train using:
+Hospital A
+↓
+Validate on Hospital B
+Then switch:
+Hospital B
+↓
+Validate on Hospital C
+The model repeatedly practices adapting to unseen domains.
+
+#Domain Generalization Pipeline
+Multiple Source Domains
+          │
+          ▼
+Feature Extractor
+          │
+          ▼
+Domain-Invariant Representation
+          │
+          ▼
+Classifier
+          │
+          ▼
+Unseen Target Domain
+
+| Aspect                  | Transfer Learning | Domain Adaptation | Domain Generalization |
+| ----------------------- | ----------------- | ----------------- | --------------------- |
+| Target data available?  | Usually yes       | Yes               | No                    |
+| Target labels required? | Usually yes       | Often no          | No                    |
+| Main challenge          | New task          | Domain shift      | Unseen domain         |
+| Goal                    | Reuse knowledge   | Adapt             | Generalize            |
+Real-World Applications
+
+Domain Generalization is important in:
+
+Medical imaging across unseen hospitals
+Autonomous driving in new cities
+Agricultural monitoring across countries
+Wildlife monitoring
+Remote sensing
+Security surveillance
+Industrial inspection
+
+
+#Challenge Questions
+1.If a model is trained only on sunny-day images, what failures might occur when deployed in snow or heavy rain?
+2.Why can increasing dataset diversity improve domain generalization?
+3.If a model achieves 99% accuracy on its training domains but performs poorly on a new domain, what does that tell you about the learned representations?
+
+* **Sunny-day model failures:** It will likely misclassify or miss objects entirely due to **domain shift**. It cannot handle the altered lighting, reduced contrast, and new textures (like snow or rain streaks) because it overfit to sunny conditions.
+* **Diversity and generalization:** Exposing the model to varied environments forces it to learn the **invariant, core features** of an object (its shape and semantic structure) rather than relying on domain-specific background cues.
+* **99% train accuracy vs. poor new domain:** The model overfit to the source domains and learned **spurious correlations** ("shortcuts") rather than robust, general-purpose representations.
+
+#Lesson 6: Out-of-Distribution (OOD) Detection
+
+Imagine you train a classifier on CIFAR-10.
+
+The classes are:
+
+Airplane
+Car
+Bird
+Cat
+Deer
+Dog
+Frog
+Horse
+Ship
+Truck
+Now suppose you give it this image:
+🥕 A carrot
+The model has never seen carrots before.
+Ideally, it should say:
+"I don't know."
+Instead, many deep learning models confidently predict:
+Truck (99.2%)
+This is the fundamental OOD problem.
+
+What is OOD Detection?
+OOD detection adds another decision before trusting the classifier.
+Input Image
+      │
+      ▼
+Feature Extractor
+      │
+      ▼
+OOD Detector
+      │
+ ┌────┴────┐
+ │         │
+ID       OOD
+ │         │
+ ▼         ▼
+Classifier Reject
+If the sample is OOD,
+the system refuses to make a prediction.
+
+Common OOD Detection Methods
+->Confidence Threshold
+->Feature Distance
+->Energy-Based Methods
+->Foundation Model Features
+
+Evaluation Metrics
+
+Unlike classification,
+
+OOD detection uses different metrics.
+
+Common ones include:
+
+AUROC (Area Under the ROC Curve)
+AUPR (Area Under the Precision–Recall Curve)
+FPR95 (False Positive Rate when TPR = 95%)
+
+General interpretation:
+
+Higher AUROC → better separation between ID and OOD.
+Lower FPR95 → fewer OOD samples mistakenly accepted.
+
+Real-World Applications
+
+OOD detection is critical in:
+
+Autonomous vehicles
+Medical diagnosis
+Industrial inspection
+Airport security
+Agricultural robotics
+Financial fraud detection
+Space exploration
+
+Whenever a wrong prediction could be dangerous,
+
+the model should know when not to answer.
+
+#Lesson 7: Robustness
+A model is robust if it continues to perform well when the input changes in ways that do not change the underlying semantic meaning.
+
+Example:
+Original image:
+🐱
+Modified image:
+Slight blur
+Rain
+Camera noise
+Lower brightness
+Humans still recognize:
+Cat
+A robust model should also predict:
+Cat
+
+Why Accuracy is Not Enough
+Suppose two models achieve:
+Model	CIFAR-100 Accuracy
+Model A	91%
+Model B	90%
+Now evaluate on corrupted images.
+Model	CIFAR-100-C
+Model A	43%
+Model B	68%
+Although Model A has higher clean accuracy, Model B is much more reliable in realistic conditions.
+This is why robustness evaluation has become a standard part of computer vision research.
+
+Types of Distribution Shift
+1. Corruption Shift
+Examples:
+Gaussian Noise
+Motion Blur
+Fog
+Snow
+Brightness
+Contrast
+JPEG Compression
+The object remains the same.
+2. Natural Shift
+Examples:
+Different cameras
+Different countries
+Different weather
+Different seasons
+3. Synthetic Shift
+Generated through:
+Style transfer
+Image editing
+Simulation engines
+4. Adversarial Shift
+Inputs are intentionally modified to fool the model.
+Unlike corruption, these perturbations are designed specifically to cause incorrect predictions.
+
+Robustness Evaluation Pipeline
+Clean Dataset
+      │
+      ▼
+Train / Load Model
+      │
+      ▼
+Evaluate on Clean Images
+      │
+      ▼
+Evaluate on Corrupted Images
+      │
+      ▼
+Compare Performance Drop
+
+Real-World Applications
+
+Robustness matters in:
+
+Self-driving vehicles
+Medical diagnosis
+Agricultural drones
+Industrial quality inspection
+Surveillance systems
+Space robotics
+Military reconnaissance
+In these settings, lighting, weather, sensor quality, and environmental conditions constantly change.
+
+<!-- Lesson 8: Explainability (XAI) -->
+
+Why Explainability Matters
+
+Imagine a medical AI predicts:
+
+Cancer
+
+The doctor asks:
+
+"Why?"
+If the AI cannot explain its reasoning, the prediction is difficult to trust.
+The same applies to:
+Autonomous driving
+Medical diagnosis
+Industrial inspection
+Financial systems
+Security applications
+
+High accuracy alone is often not sufficient.
+
+The Black Box Problem
+
+Deep neural networks contain millions or even billions of parameters.
+
+Image
+   │
+Deep Neural Network
+(100M+ Parameters)
+   │
+Prediction
+
+We know the input.
+We know the output.
+But we often do not know why a specific prediction was made.
+This is known as the black-box problem.
+
+Interpretability vs Explainability
+These terms are related but not identical.
+Interpretability
+A model is inherently understandable.
+Example:
+Decision Tree
+Linear Regression
+You can directly inspect how predictions are made.
+Explainability
+The model itself remains complex,
+but we generate explanations after training.
+Example:
+Grad-CAM
+SHAP
+LIME
+Attention visualization
+Most modern deep learning models require explainability methods.
+
+#Saliency Maps
+
+A saliency map highlights pixels that most influence the prediction.
+Example:
+Input Image
+↓
+Compute Gradient
+↓
+Importance Map
+Bright regions:
+→ More important
+Dark regions:
+→ Less important
+For a cat classifier,
+the model should ideally focus on:
+Eyes
+Face
+Ears
+rather than:
+Sky
+Grass
+Background
+
+-->Gradient-weighted Class Activation Mapping (Grad-CAM) is one of the most widely used explainability techniques for CNNs.
+Pipeline:
+
+Input Image
+      │
+      ▼
+CNN
+      │
+      ▼
+Last Convolution Layer
+      │
+      ▼
+Gradients
+      │
+      ▼
+Heatmap
+      │
+      ▼
+Overlay on Image
+
+Example:
+Dog Image
+↓
+Heatmap
+🔥🔥🔥 Face
+🔥 Body
+Background (low importance)
+The heatmap reveals which image regions contributed most to the prediction.
+
+Popular Explainability Methods
+
+| Method                 | Typical Use                                      |
+| ---------------------- | ------------------------------------------------ |
+| Saliency Maps          | Pixel importance                                 |
+| Grad-CAM               | CNN heatmaps                                     |
+| Guided Backpropagation | Fine-grained visualization                       |
+| SHAP                   | Feature attribution                              |
+| LIME                   | Local explanation                                |
+| Attention Maps         | Transformer visualization                        |
+| Integrated Gradients   | Attribution with improved theoretical properties |
+
+Limitations of Explainability
+
+Explainability methods are approximations, not ground truth.
+
+Common challenges:
+
+Different methods may produce different explanations.
+Heatmaps can be unstable.
+Some methods are sensitive to small input changes.
+Attractive visualizations do not necessarily imply correct reasoning.
+Explanations can sometimes highlight correlated background features instead of the true object.
+
+Always validate explanations rather than assuming they are correct.
+
+#Real-World Applications
+
+Explainability is widely used in:
+
+Medical imaging
+Drug discovery
+Autonomous driving
+Industrial defect detection
+Satellite image analysis
+Regulatory AI systems
+Scientific research
+
+It helps developers:
+
+Debug models
+Detect shortcut learning
+Build user trust
+Meet regulatory requirements
+
