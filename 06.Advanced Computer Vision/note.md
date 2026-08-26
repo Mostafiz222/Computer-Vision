@@ -939,3 +939,574 @@ Detect shortcut learning
 Build user trust
 Meet regulatory requirements
 
+
+<!-- Lesson 9: Object Detection -->
+Image Classification tells us what is in an image. Object Detection tells us what is present and where it is.
+Why Object Detection?
+
+Suppose we have this image:
+
+        🚗      🚗
+
+    🚶
+
+             🚲
+
+A classification model predicts:
+
+Car
+
+Is that enough?
+
+No.
+
+We don't know:
+
+How many cars exist?
+Where are they?
+Is there a pedestrian?
+Is there a bicycle?
+
+Object Detection answers all of these questions simultaneously.
+
+Classification vs Localization vs Detection
+
+These three tasks are often confused.
+
+1. Image Classification
+
+Input:
+
+Image
+
+Output:
+
+Dog
+
+Only predicts the image label.
+
+2. Object Localization
+
+Input:
+
+Image
+
+Output:
+
+Dog
+
+Bounding Box
+
+Only one object is assumed.
+
+Example:
+
++-------------------+
+|                   |
+|     ┌───────┐     |
+|     │  Dog  │     |
+|     └───────┘     |
+|                   |
++-------------------+
+3. Object Detection
+Input:
+Image
+Output:
+Dog
+Bounding Box
+Cat
+Bounding Box
+Person
+Bounding Box
+Multiple objects.
+Multiple classes.
+Multiple locations.
+ What is a Bounding Box?
+A bounding box is a rectangle surrounding an object.
+Example
++---------------------------+
+|                           |
+|        ┌──────────┐       |
+|        │   Dog    │       |
+|        └──────────┘       |
+|                           |
++---------------------------+
+
+Usually represented as
+(xmin, ymin, xmax, ymax)
+or
+(center_x,
+ center_y,
+ width,
+ height)
+Example
+(120, 45, 280, 190)
+These four numbers describe the object's location.
+Detection Output
+
+Suppose an image contains
+
+one dog
+two people
+one bicycle
+The detector may output
+Class	Confidence	Bounding Box
+Dog	0.98	(45, 30, 180, 210)
+Person	0.95	(250, 40, 340, 240)
+Person	0.91	(360, 35, 440, 245)
+Bicycle	0.88	(180, 220, 420, 420)
+Notice that every prediction contains:
+Class
+Confidence score
+Location
+
+#The Object Detection Pipeline
+A modern detector follows this pipeline:
+Input Image
+      │
+      ▼
+Backbone Network
+      │
+Extract Features
+      │
+      ▼
+Detection Head
+      │
+      ▼
+Bounding Boxes
+Class Labels
+Confidence Scores
+
+Backbone
+
+Extracts visual features.
+
+Examples:
+
+ResNet
+ConvNeXt
+Vision Transformer
+CSPDarkNet
+Detection Head
+
+Predicts
+
+Object class
+Bounding box coordinates
+Confidence
+
+Popular Object Detection Models
+
+Object detectors are broadly divided into two families.
+
+Two-Stage Detectors
+
+Examples:
+
+R-CNN
+Fast R-CNN
+Faster R-CNN
+Mask R-CNN
+
+Pipeline
+
+Generate candidate regions
+
+↓
+
+Classify each region
+
+Advantages
+
+High accuracy
+Strong localization
+Disadvantages
+Slower inference
+One-Stage Detectors
+Examples
+YOLO
+SSD
+RetinaNet
+Pipeline
+Image
+↓
+Directly predict
+boxes + classes
+
+Advantages
+Extremely fast
+Real-time detection
+Disadvantages
+Earlier versions sacrificed some accuracy (modern YOLO versions have narrowed this gap significantly).
+We'll study both families in later lessons.
+
+#Evaluation Metrics
+
+Unlike classification, detection must evaluate both:
+
+Correct class
+Correct location
+
+The main metrics are:
+
+IoU (Intersection over Union) – Measures how well the predicted box overlaps the ground-truth box.
+Precision – Fraction of predicted detections that are correct.
+Recall – Fraction of ground-truth objects that were detected.
+Average Precision (AP) – Area under the Precision–Recall curve for one class.
+Mean Average Precision (mAP) – Mean AP across all classes.
+
+#Real-World Applications
+
+Object Detection is used in:
+
+Autonomous driving
+Traffic monitoring
+Face detection
+Medical imaging
+Drone surveillance
+Manufacturing inspection
+Wildlife monitoring
+Retail inventory management
+Robotics
+
+<!-- Image Segmentation -->
+
+Image Classification tells us what is in an image.
+Object Detection tells us what and where.
+Image Segmentation tells us the exact shape of every object at the pixel level.
+Why Segmentation?
+
+Suppose we have this image:
+
+        🚗
+
+   🚶
+
+           🌳
+Classification
+
+Output
+
+Car
+
+Very little information.
+
+Object Detection
+
+Output
+
+Car
+Bounding Box
+
+Person
+Bounding Box
+
+Tree
+Bounding Box
+
+Better.
+
+But we still don't know the exact object boundaries.
+
+Segmentation
+
+Output
+
+Every pixel belongs to a class.
+
+Now the model knows
+Exact object shape
+Exact object boundary
+Exact object size
+This is much richer information.
+
+What is a Mask?
+
+Instead of predicting rectangles,
+
+segmentation predicts a mask.
+
+Example
+
+Original
+
+□□□□□□□
+□□🐱□□□
+□□🐱□□□
+□□□□□□□
+Mask
+0000000
+0011000
+0011000
+0000000
+Each pixel receives a label.
+
+Types of Image Segmentation
+
+There are three major types.
+
+1. Semantic Segmentation
+
+Every pixel is assigned a class.
+
+Example
+
+Road
+Road
+Road
+
+Car
+Car
+
+Sky
+Sky
+
+If there are three cars,
+
+all car pixels receive
+
+Car
+
+The model does not distinguish individual objects.
+
+Visual Example
+🚗 🚗 🚗
+
+↓
+
+All become
+
+CAR
+
+Every car has the same label.
+
+2. Instance Segmentation
+
+Now each object receives its own mask.
+
+Example
+
+Car 1
+
+Car 2
+
+Car 3
+
+Although all are cars,
+
+the model separates them individually.
+
+Output
+
+Car #1
+
+Car #2
+
+Car #3
+
+This is much more informative.
+
+3. Panoptic Segmentation
+
+Combines both tasks.
+
+Things (countable)
+
+Car
+Person
+Dog
+
+Stuff (uncountable)
+
+Sky
+Road
+Grass
+
+Output
+
+Road
+
+Sky
+
+Car #1
+
+Car #2
+
+Person #1
+
+Today,
+
+Panoptic Segmentation is considered one of the most complete scene understanding tasks.
+
+#Detection vs Segmentation
+
+| Task                  | Output                         |
+| --------------------- | ------------------------------ |
+| Classification        | Image Label                    |
+| Localization          | One Bounding Box               |
+| Object Detection      | Multiple Bounding Boxes        |
+| Semantic Segmentation | Pixel Class Labels             |
+| Instance Segmentation | Separate Mask for Every Object |
+| Panoptic Segmentation | Instance + Semantic Together   |
+
+Popular Segmentation Models
+1. FCN (Fully Convolutional Network)
+
+Published in 2015, FCN replaced fully connected layers with convolutional layers, allowing a network to produce dense pixel-wise predictions.
+
+Pros
+
+First modern segmentation architecture
+End-to-end training
+
+Cons
+
+Coarse object boundaries
+2. U-Net
+
+Probably the most famous segmentation architecture.
+
+Architecture
+
+Encoder
+
+↓
+
+Bottleneck
+
+↓
+
+Decoder
+
+The key innovation:
+
+Skip Connections
+
+Encoder Layer
+
+──────────────►
+
+Decoder Layer
+
+These connections preserve fine spatial details.
+
+Applications
+
+Medical imaging
+Microscopy
+Satellite imagery
+Industrial inspection
+3. DeepLab
+
+DeepLab introduced Atrous (Dilated) Convolutions, which enlarge the receptive field without reducing resolution.
+
+Advantages
+
+Better multi-scale context
+Strong segmentation accuracy
+
+Variants
+
+DeepLabV1
+DeepLabV2
+DeepLabV3
+DeepLabV3+
+4. Mask R-CNN
+
+Extends Faster R-CNN.
+
+Pipeline
+
+Detect Object
+
+↓
+
+Predict Bounding Box
+
+↓
+
+Predict Pixel Mask
+
+Produces
+
+Class
+Bounding box
+Segmentation mask
+
+One of the most influential instance segmentation models.
+
+5. Segment Anything Model (SAM)
+
+Developed by Meta AI.
+
+Instead of training for one dataset,
+
+SAM is trained to segment almost any object from prompts.
+
+Example prompts:
+
+Click on an object
+Draw a box
+Provide a text prompt (with extensions)
+
+SAM is considered a foundation model for segmentation.
+
+
+Evaluation Metrics
+
+Unlike classification,
+
+segmentation evaluates predictions at the pixel level.
+
+Pixel Accuracy
+
+Percentage of correctly classified pixels.
+
+Simple,
+
+but can be misleading if one class dominates the image.
+
+Intersection over Union (IoU)
+
+Measures overlap between predicted and ground-truth masks.
+
+Prediction ∩ Ground Truth
+-------------------------
+Prediction ∪ Ground Truth
+
+IoU ranges from 0 to 1.
+
+Higher is better.
+
+Dice Score
+
+Also called the F1 Score for segmentation.
+
+Formula
+
+2 × Intersection
+-------------------------
+Prediction + Ground Truth
+
+Widely used in
+
+Medical imaging
+Organ segmentation
+Tumor segmentation
+
+Dice is especially useful when objects occupy only a small part of the image.
+
+Part 7 — Real-World Applications
+
+Segmentation is essential in:
+
+Autonomous driving
+Medical diagnosis
+Satellite land-cover mapping
+Precision agriculture
+Robot navigation
+Construction monitoring
+Flood detection
+Brain MRI analysis
+Cell segmentation
+Manufacturing inspection
